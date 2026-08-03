@@ -1,0 +1,35 @@
+# ---------- .NET ----------
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+# EF Core: keep Migrations/ (source), ignore build output only (covered above)
+
+# ---------- Node (frontend has its own .gitignore too) ----------
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# ---------- IDE / editors ----------
+.vs/
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# ---------- OS ----------
+.DS_Store
+Thumbs.db
+
+# ---------- Logs ----------
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ---------- Env (local) ----------
+.env
+.env.local
+.env.*.local
+!.env.example

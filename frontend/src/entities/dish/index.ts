@@ -1,0 +1,5 @@
+export { useDishes, fetchDishes } from '@/entities/dish/api/dishApi'
+export { DishCard } from '@/entities/dish/ui/DishCard'
+export { CATEGORY_META, CATEGORY_ORDER } from '@/entities/dish/model/categories'
+export type { CategoryMeta } from '@/entities/dish/model/categories'
+export type { Dish, DishCategory } from '@/entities/dish/model/types'

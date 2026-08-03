@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SoftwareHamgueria.API/SoftwareHamgueria.API.csproj" />
+    <Project Path="src/SoftwareHamgueria.Application/SoftwareHamgueria.Application.csproj" />
+    <Project Path="src/SoftwareHamgueria.Domain/SoftwareHamgueria.Domain.csproj" />
+    <Project Path="src/SoftwareHamgueria.Infrastructure/SoftwareHamgueria.Infrastructure.csproj" />
+  </Folder>
+</Solution>
