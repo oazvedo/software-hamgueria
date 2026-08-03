@@ -1,4 +1,4 @@
-# 🍔 Software Hamgueria
+# Software Hamgueria
 
 O restaurante onde você monta seu pedido como se fosse um **JSON**.
 
@@ -11,7 +11,7 @@ um _deploy em produção_.
 
 ---
 
-## ✨ Funcionalidades
+## Funcionalidades
 
 - **Cardápio + pedido em JSON ao vivo** — monte o pedido e veja o payload se formar em
   tempo real num painel com cara de terminal.
@@ -26,7 +26,7 @@ um _deploy em produção_.
 - **Fechar comanda** — cliente ou caixa encerram a comanda; ela sai das ativas e o mesmo
   nome pode abrir uma comanda nova depois.
 
-## 🧱 Arquitetura
+## Arquitetura
 
 Monorepo com dois apps:
 
@@ -46,7 +46,7 @@ software-hamgueria/
 **Frontend (FSD):** `app → pages → widgets → features → entities → shared`.
 Componentes visuais em `shared/ui` (átomos/moléculas + primitivos shadcn/ui).
 
-## 🛠️ Stack
+## Stack
 
 | | |
 |---|---|
@@ -54,7 +54,7 @@ Componentes visuais em `shared/ui` (átomos/moléculas + primitivos shadcn/ui).
 | **Frontend** | React 19, TypeScript, Vite, Tailwind CSS v4, **shadcn/ui** (Radix), TanStack Query, Zustand |
 | **Dev** | Docker Compose (Postgres + RabbitMQ), MSW (mocks de API no navegador) |
 
-## 🚀 Rodando localmente
+## Rodando localmente
 
 Pré-requisitos: **.NET 10 SDK**, **Node 20+**, **Docker**.
 
@@ -98,7 +98,7 @@ VITE_ENABLE_MOCKS=false       # usa o backend via proxy do Vite (→ :5262)
 | `/mesa/:tableId` | Todas as comandas de uma mesa |
 | `/producao` | Tela da cozinha (autenticada) |
 
-## 🗄️ Mudanças de schema (backend)
+## Mudanças de schema (backend)
 
 O schema é versionado com **EF Core Migrations** (aplicadas no startup via `Migrate()`):
 
@@ -113,4 +113,4 @@ Depois é só reiniciar a API — a migration é aplicada preservando os dados.
 
 ---
 
-> ⚠️ As credenciais em `appsettings.json` são apenas para desenvolvimento local.
+> As credenciais em `appsettings.json` são apenas para desenvolvimento local.
