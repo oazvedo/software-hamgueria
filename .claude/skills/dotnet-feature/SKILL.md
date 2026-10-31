@@ -204,4 +204,5 @@ Swagger (`/swagger`) ou pelo `SoftwareHamgueria.API.http`.
 - [ ] Uma escrita de repositório por operação; evento publicado depois da escrita (se houver)
 - [ ] Controller sem lógica; público/Admin conforme o `plan.md`; sem DELETE
 - [ ] Tipo + API + handler MSW no frontend
+- [ ] Configuração nova (ADR 0024): chave sensível nunca no `appsettings.json` nem com fallback no código; valor de dev no `appsettings.Development.json`, regra no `RequiredSettings` e variável no `.env.example` + `docker-compose.prod.yml`
 - [ ] Testes de unidade e funcional (ADR 0016) verdes; `dotnet run` aplica a migration e o endpoint aparece no `/swagger`

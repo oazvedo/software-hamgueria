@@ -18,6 +18,7 @@ Para criar: skill `spec`. Para implementar: skill `implement-task`. Templates em
 | 001 | [Linha de base: o que o Hamgueria já faz](001-linha-de-base/spec.md) | Concluída (retroativa) |
 | 002 | [Base de testes automatizados](002-base-de-testes/spec.md) | Concluída |
 | 003 | [Validação de entrada e erros padronizados](003-validacao-problemdetails/spec.md) | Concluída |
+| 004 | [Preparar o Hamgueria para rodar num servidor na nuvem](004-deploy-aws-ec2/spec.md) | Concluída |
 
 ## Candidatos a spec
 Dívidas e ideias encontradas na adoção do fluxo (2026-10-31). Cada item vira uma spec, entra numa spec existente ou é
@@ -27,7 +28,6 @@ descartado. Ao aprovar uma spec que resolve um item, remova-o daqui.
 |---|---|---|
 | Unit of Work | Pedido gravado e evento publicado não são atômicos; operações compostas não têm transação. | 0006, 0010 |
 | Preço como `decimal` | `Dish.Price` é `double`: erros de arredondamento em dinheiro. | 0007 |
-| Segredos fora do `appsettings` | Senha do admin, segredo JWT e senha do Postgres versionados; fallback hardcoded no `AuthService`. | 0009 |
 | Lint das fronteiras do FSD | A regra de imports do FSD não é verificada automaticamente. | 0011 |
 | Paginação em `GET /api/order` | A lista da cozinha cresce sem limite. | 0006 |
 | Esconder pratos inativos do cardápio | O cardápio mostra pratos desativados; o cliente só descobre no envio do pedido. | — |

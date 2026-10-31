@@ -124,6 +124,9 @@ Ajustes conhecidos:
   `/api/<entidade-singular>`, sem DELETE, Swagger em `/swagger` (ADR 0008). Entrada validada com FluentValidation no
   service (ADR 0021). Erros em ProblemDetails pelo handler global, sem `try/catch` no controller, com
   `NotFoundException`/`BusinessRuleException` (ADR 0022). JWT com papel `Admin` (ADR 0009). Eventos de pedido no RabbitMQ (ADR 0010). Comanda = mesa + nome (ADR 0014).
+  Segredos só por variável de ambiente, validados no startup fora de `Development` pelo `RequiredSettings` (ADR 0024).
+- **Deploy:** uma EC2 com `docker-compose.prod.yml` (Postgres, RabbitMQ, API e Caddy servindo a tela e o `/api`), só
+  80/443 abertas, segredos no `.env` da raiz (ADR 0023). Guia em `docs/deploy/aws-ec2.md`.
 - **Frontend:** React + FSD + Atomic Design no `shared/ui` + shadcn/Tailwind (ADR 0011). TanStack Query para estado
   do servidor, Zustand para estado do cliente (ADR 0012). MSW ligado por padrão; todo endpoint novo tem handler (ADR 0013).
 - **Testes (ADR 0016):** a verificação de toda task é o teste da parte tocada, não só o build. Servidor: xUnit v3 +
@@ -147,7 +150,7 @@ Ajustes conhecidos:
 
 ## Comandos
 ```bash
-# Backend (Postgres + RabbitMQ via Docker)
+# Backend (Postgres na 5433 + RabbitMQ na 5673/15673 via Docker; valores em backend/.env, modelo .env.example)
 cd backend && docker compose up -d
 dotnet run --project backend/src/SoftwareHamgueria.API      # :5262, aplica migrations + seed; /swagger
 
@@ -165,9 +168,13 @@ cd frontend && npm run build && npm run lint
 cd frontend && npm run e2e                  # Playwright com mocks (sobe o Vite na 5173)
 
 # Ponta a ponta no modo real: API numa base separada, nunca a de dev (spec 002, RN-02). Precisa do RabbitMQ.
-ConnectionStrings__Postgres="Host=localhost;Port=5432;Database=hamgueria_e2e;Username=hamgueria;Password=hamgueria123" \
+ConnectionStrings__Postgres="Host=localhost;Port=5433;Database=hamgueria_e2e;Username=hamgueria;Password=hamgueria123" \
   dotnet run --project backend/src/SoftwareHamgueria.API --launch-profile http
 cd frontend && npm run e2e:real             # Vite na 5174 sem mocks; pula sozinho se a API não responder
+
+# Produção (ADR 0023): fumaça local da pilha completa na 8088 (sobe, confere e derruba com volumes)
+sh scripts/deploy/smoke.sh
+docker compose -f docker-compose.prod.yml up -d --build    # no servidor, com o .env da raiz (docs/deploy/aws-ec2.md)
 ```
 Playwright no WSL (uma vez): `npx playwright install chromium` e `sudo env "PATH=$PATH" npx playwright install-deps chromium`.
 Login da cozinha (dev): `admin` / `admin123`.
