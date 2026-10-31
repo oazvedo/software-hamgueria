@@ -58,6 +58,26 @@ todos os pedidos e o fechamento das comandas.
   (não há verificação de dono).
 - **CA-13:** Dado o frontend sem backend, quando roda em modo padrão, então todo o fluxo acima funciona com dados simulados.
 
+## Cobertura (spec 002)
+Busque pelo prefixo `001/CA-xx` no nome do teste. S = servidor (`dotnet test`), I = interface (`npm test`),
+E = ponta a ponta (`npm run e2e`, também no modo real).
+
+| CA | Coberto por |
+|---|---|
+| CA-01 ⚠️ | Sem checagem: comportamento a corrigir ("Esconder pratos inativos do cardápio") |
+| CA-02 | I: `orderStore.test.ts`, `orderJson.test.ts`, `OrderJsonPanel.test.tsx` |
+| CA-03 | S: `OrderServiceTests`, `OrderEndpointsTests` · I: `orderJson.test.ts`, `orderStore.test.ts`, `useSubmitOrder.test.tsx` |
+| CA-04 | S: `OrderServiceTests`, `OrderEndpointsTests` · I: `orderJson.test.ts`, `useSubmitOrder.test.tsx` |
+| CA-05 | S: `OrderServiceTests`, `OrderEndpointsTests` (prato inativo e inexistente) |
+| CA-06 | S: `OrderEndpointsTests` · I: `orderStatus.test.ts`, `OrderStatusPage.test.tsx` |
+| CA-07 | S: `ComandaEndpointsTests` · E: `cliente.spec.ts` |
+| CA-08 | S: `OrderServiceTests`, `ComandaEndpointsTests` · E: `cliente.spec.ts` |
+| CA-09 | S: `AuthEndpointsTests` · E: `cozinha.spec.ts` |
+| CA-10 | S: `AuthEndpointsTests` · E: `cozinha.spec.ts` |
+| CA-11 | S: `AuthEndpointsTests` · E: `cozinha.spec.ts` |
+| CA-12 ⚠️ | Sem checagem: comportamento a corrigir (cancelamento sem verificar o dono) |
+| CA-13 | E: `cliente.spec.ts` (o nome cita CA-13); toda a suíte e2e roda no projeto `mock`, sem backend |
+
 ## Fora de escopo
 - Pagamento, divisão de conta e emissão de nota.
 - Cadastro de funcionários (existe um único login de cozinha).

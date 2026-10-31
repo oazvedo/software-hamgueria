@@ -125,8 +125,10 @@ Ajustes conhecidos:
   Eventos de pedido no RabbitMQ (ADR 0010). Comanda = mesa + nome (ADR 0014).
 - **Frontend:** React + FSD + Atomic Design no `shared/ui` + shadcn/Tailwind (ADR 0011). TanStack Query para estado
   do servidor, Zustand para estado do cliente (ADR 0012). MSW ligado por padrão; todo endpoint novo tem handler (ADR 0013).
-- **Testes:** ainda não há suíte (veja "Candidatos a spec"). Até existir, a verificação mínima de uma task é o build
-  e o lint da camada (abaixo). Quando a spec de testes for aceita, ela vira a regra.
+- **Testes (ADR 0016):** a verificação de toda task é o teste da parte tocada, não só o build. Servidor: xUnit v3 +
+  NSubstitute (unidade) e WebApplicationFactory + Testcontainers (funcional, exige Docker). Interface: Vitest + Testing
+  Library com os handlers MSW. Ponta a ponta: Playwright (`mock` sempre, `real` opcional). Nome do teste cita o
+  critério: `"001/CA-04: pedido sem nome de comanda é recusado"`. Todo critério tem sucesso e, se houver, falha.
 
 ## Git
 - Commits **sem** `Co-Authored-By` nem qualquer atribuição ao Claude.
@@ -137,13 +139,24 @@ Ajustes conhecidos:
 # Backend (Postgres + RabbitMQ via Docker)
 cd backend && docker compose up -d
 dotnet run --project backend/src/SoftwareHamgueria.API      # :5262, aplica migrations + seed; /swagger
-dotnet build backend/SoftwareHamgueria.slnx                 # verificação mínima do backend
+
+# Testes do servidor (Microsoft.Testing.Platform via global.json: --solution/--project e --filter-class)
+dotnet test --solution backend/SoftwareHamgueria.slnx                                        # tudo (~10 s, Docker ligado)
+dotnet test --project backend/tests/SoftwareHamgueria.UnitTests --filter-class "*.OrderServiceTests"   # uma classe
 
 # Migration nova
 dotnet ef migrations add <Nome> -p backend/src/SoftwareHamgueria.Infrastructure -s backend/src/SoftwareHamgueria.API
 
 # Frontend (:5173, MSW ligado por padrão; VITE_ENABLE_MOCKS=false usa a API real)
 cd frontend && npm install && npm run dev
-cd frontend && npm run build && npm run lint                # verificação mínima do frontend
+cd frontend && npm test                     # Vitest (~3 s); `npm test -- <arquivo>` filtra
+cd frontend && npm run build && npm run lint
+cd frontend && npm run e2e                  # Playwright com mocks (sobe o Vite na 5173)
+
+# Ponta a ponta no modo real: API numa base separada, nunca a de dev (spec 002, RN-02). Precisa do RabbitMQ.
+ConnectionStrings__Postgres="Host=localhost;Port=5432;Database=hamgueria_e2e;Username=hamgueria;Password=hamgueria123" \
+  dotnet run --project backend/src/SoftwareHamgueria.API --launch-profile http
+cd frontend && npm run e2e:real             # Vite na 5174 sem mocks; pula sozinho se a API não responder
 ```
+Playwright no WSL (uma vez): `npx playwright install chromium` e `sudo env "PATH=$PATH" npx playwright install-deps chromium`.
 Login da cozinha (dev): `admin` / `admin123`.

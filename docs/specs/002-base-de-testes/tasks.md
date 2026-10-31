@@ -50,62 +50,62 @@
     com a imagem em cache (CA-01)
 
 ## Fase 2: interface
-- [ ] **T07. Vitest configurado + status do pedido**
+- [x] **T07. Vitest configurado + status do pedido**
   - Arquivos: `frontend/package.json` (devDeps + scripts `test`, `test:watch`), `frontend/vitest.config.ts`,
     `frontend/src/shared/test/{setup.ts,renderWithProviders.tsx,index.ts}`,
     `frontend/src/entities/order/model/orderStatus.test.ts`
   - Cobre: CA-02 (base), 001/CA-06 (pipeline e status terminal)
   - Verificação: `cd frontend && npm test -- orderStatus` → verde; `npm run build && npm run lint` → sem erro novo
 
-- [ ] **T08. Carrinho e JSON do pedido**
+- [x] **T08. Carrinho e JSON do pedido**
   - Arquivos: `frontend/src/entities/order/model/orderStore.test.ts`,
     `frontend/src/entities/order/model/orderJson.test.ts`
   - Cobre: CA-02 (001/CA-02 adicionar, quantidade, observação, remover com quantidade 0; 001/CA-03 `clear` mantém
     mesa e nome; trocar de mesa limpa o nome)
   - Verificação: `cd frontend && npm test -- orderStore orderJson` → verde
 
-- [ ] **T09. Painel JSON reflete o carrinho**
+- [x] **T09. Painel JSON reflete o carrinho**
   - Arquivos: `frontend/src/widgets/order-json/ui/OrderJsonPanel.test.tsx`
   - Cobre: CA-02 (001/CA-02 o painel mostra o item e a quantidade novos sem recarregar)
   - Verificação: `cd frontend && npm test -- OrderJsonPanel` → verde
 
-- [ ] **T10. Envio do pedido**
+- [x] **T10. Envio do pedido**
   - Arquivos: `frontend/src/features/submit-order/model/useSubmitOrder.test.tsx`
   - Cobre: CA-02 (001/CA-03 envia via mock, esvazia itens, mantém mesa e nome; falha: com o handler sobrescrito no
     teste para responder 400, o carrinho é mantido e aparece o toast de erro), CA-04 (não limpar o carrinho no sucesso → "001/CA-03" vermelho → reverter)
   - Verificação: `cd frontend && npm test -- useSubmitOrder` → verde
 
-- [ ] **T11. Tela de acompanhamento**
+- [x] **T11. Tela de acompanhamento**
   - Arquivos: `frontend/src/pages/order-status/ui/OrderStatusPage.test.tsx`
   - Cobre: CA-02 (001/CA-06 a tela mostra o estágio do pedido criado no mock; falha: id inexistente mostra "Pedido não encontrado")
   - Verificação: `cd frontend && npm test` → verde, duas vezes seguidas (CA-06), em ≤ 1 min (CA-02)
 
 ## Fase 3: ponta a ponta
-- [ ] **T12. Playwright configurado + login recusado**
+- [x] **T12. Playwright configurado + login recusado**
   - Arquivos: `frontend/package.json` (devDep + scripts `e2e`, `e2e:real`), `frontend/playwright.config.ts`,
     `frontend/.gitignore`, `frontend/e2e/cozinha.spec.ts` (só o caso de senha errada)
   - Cobre: CA-03 (base), 001/CA-10 no navegador
   - Pré-requisito do usuário: `npx playwright install chromium` e `sudo npx playwright install-deps chromium`
   - Verificação: `cd frontend && npm run e2e` → verde
 
-- [ ] **T13. Fluxo do cliente**
+- [x] **T13. Fluxo do cliente**
   - Arquivos: `frontend/e2e/cliente.spec.ts`
   - Cobre: CA-03 (001/CA-07 comanda e mesa, 001/CA-08 fechar e reabrir com o mesmo nome, 001/CA-13 tudo com mocks)
   - Verificação: `cd frontend && npm run e2e -- cliente` → verde
 
-- [ ] **T14. Fluxo da cozinha**
+- [x] **T14. Fluxo da cozinha**
   - Arquivos: `frontend/e2e/cozinha.spec.ts`
   - Cobre: CA-03 (001/CA-09 sem login vê o formulário, 001/CA-11 cozinha finaliza e o cliente vê "Servido")
   - Verificação: `cd frontend && npm run e2e` → verde, duas vezes seguidas (CA-06)
 
-- [ ] **T15. Modo real**
+- [x] **T15. Modo real**
   - Arquivos: `frontend/playwright.config.ts` (projeto `real` + guarda de API no ar), `CLAUDE.md` (comando para subir
     a API na base `hamgueria_e2e`)
   - Cobre: CA-03 (os mesmos fluxos contra a API real), CA-05 (base separada)
   - Verificação: sem API → `npm run e2e:real` pula com mensagem; com a API em `hamgueria_e2e` → verde
 
 ## Fase 4: processo
-- [ ] **T16. Testes viram a verificação padrão**
+- [x] **T16. Testes viram a verificação padrão**
   - Arquivos: `CLAUDE.md` (Testes, Comandos), `.claude/skills/implement-task/SKILL.md`,
     `.claude/skills/dotnet-feature/SKILL.md`, `.claude/skills/react-feature/SKILL.md`,
     `docs/specs/_templates/tasks.md`
@@ -113,7 +113,7 @@
   - Verificação: os quatro comandos de teste aparecem como verificação nos três lugares; nenhuma menção restante a
     "build como verificação mínima"
 
-- [ ] **T17. Cobertura na linha de base**
+- [x] **T17. Cobertura na linha de base**
   - Arquivos: `docs/specs/001-linha-de-base/spec.md`
   - Cobre: RN-01 (cada CA da 001 aponta para o teste que o cobre; CA-01 e CA-12 marcados "sem checagem: spec própria")
   - Verificação: todos os CA da 001 têm uma linha na tabela; os nomes batem com `DisplayName`/`it(...)` existentes

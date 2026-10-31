@@ -184,9 +184,9 @@ Todo endpoint novo ou alterado precisa, **na mesma spec**, do tipo em `entities/
 
 ## Verificação
 ```bash
-dotnet build backend/SoftwareHamgueria.slnx
+dotnet test --solution backend/SoftwareHamgueria.slnx   # testes de unidade (Application) + funcionais (endpoint), com sucesso e falha
 ```
-Quando houver suíte de testes, cada task inclui o cenário de sucesso e o de falha. Para endpoints, valide também pelo
+Cada task inclui o cenário de sucesso e o de falha (unidade em `tests/SoftwareHamgueria.UnitTests`, endpoint em `tests/SoftwareHamgueria.FunctionalTests` usando o `ApiClient`). Para endpoints, valide também pelo
 Swagger (`/swagger`) ou pelo `SoftwareHamgueria.API.http`.
 
 ## Checklist de pronto
@@ -197,4 +197,4 @@ Swagger (`/swagger`) ou pelo `SoftwareHamgueria.API.http`.
 - [ ] Uma escrita de repositório por operação; evento publicado depois da escrita (se houver)
 - [ ] Controller sem lógica; público/Admin conforme o `plan.md`; sem DELETE
 - [ ] Tipo + API + handler MSW no frontend
-- [ ] `dotnet build` verde; `dotnet run` aplica a migration e o endpoint aparece no `/swagger`
+- [ ] Testes de unidade e funcional (ADR 0016) verdes; `dotnet run` aplica a migration e o endpoint aparece no `/swagger`

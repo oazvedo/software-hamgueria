@@ -105,10 +105,10 @@ do cliente (`/comanda`, `/mesa`, `/producao`). Página autenticada usa o `useAut
 
 ## Verificação
 ```bash
-cd frontend && npm run build && npm run lint
+cd frontend && npm test && npm run build && npm run lint   # Vitest ao lado da slice (`*.test.tsx`), com sucesso e falha
 ```
 E manual: `npm run dev` com mocks (padrão) e, se a spec mexeu no backend, com `VITE_ENABLE_MOCKS=false` + API rodando.
-Quando houver suíte de testes, cada task inclui sucesso e falha.
+Cada task inclui sucesso e falha (Vitest com `renderWithProviders`/`server` de `@/shared/test`; fluxo novo de tela ganha um passo em `e2e/`).
 
 ## Checklist de pronto
 - [ ] Handler MSW com sucesso e erros, na ordem certa

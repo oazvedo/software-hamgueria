@@ -1,6 +1,6 @@
 # 002. Base de testes automatizados: Spec
 
-- **Status:** Em andamento
+- **Status:** Concluída
 - **Data:** 2026-10-31
 
 ## Problema

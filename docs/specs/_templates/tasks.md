@@ -9,13 +9,13 @@
 - [ ] **T01. <título>**
   - Arquivos: `...`
   - Cobre: CA-xx
-  - Verificação: `dotnet build backend/SoftwareHamgueria.slnx` → sem erros
+  - Verificação: `dotnet test --project backend/tests/<Projeto> --filter-class "*.<Classe>"` → verde
 
 ## Fase 2: frontend
 - [ ] **T02. <título>**
   - Arquivos: `...`
   - Cobre: CA-xx
-  - Verificação: `cd frontend && npm run build && npm run lint` → sem erros
+  - Verificação: `cd frontend && npm test -- <arquivo>` → verde
 
 ## Backlog
 <!-- Achados da simplify e da revisão que ficam fora do escopo desta spec. Um item por linha, com o motivo. -->
