@@ -15,6 +15,7 @@ export function useCloseComanda() {
       queryClient.invalidateQueries({ queryKey: queryKeys.tableOrders(tableId) })
       queryClient.invalidateQueries({ queryKey: queryKeys.tableComandas(tableId) })
       queryClient.invalidateQueries({ queryKey: queryKeys.allOrders })
+      queryClient.invalidateQueries({ queryKey: queryKeys.idleComandas })
       toast.success('Comanda fechada.')
     },
     onError: (error) => toast.error(problemMessage(error, 'Não foi possível fechar a comanda.')),

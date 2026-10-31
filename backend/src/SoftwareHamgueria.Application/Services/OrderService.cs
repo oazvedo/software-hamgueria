@@ -69,6 +69,23 @@ public class OrderService(
         return ToDto(order, IsClosed(order, closure?.ClosedAt));
     }
 
+    /// <summary>
+    /// Open comandas with no new order for <paramref name="hours"/> hours, 1 to 72 (spec 025): the kitchen is warned
+    /// and decides. A comanda is open when it was never closed or got an order after the last closing.
+    /// </summary>
+    public async Task<IReadOnlyList<IdleComandaDto>> GetIdleComandasAsync(int hours)
+    {
+        if (hours is < 1 or > 72)
+            throw new ValidationException([new FluentValidation.Results.ValidationFailure("hours", "As horas vão de 1 a 72.")]);
+        var idle = await orderRepository.GetComandasIdleSinceAsync(DateTime.UtcNow - TimeSpan.FromHours(hours));
+        var closures = BuildClosureMap(await comandaRepository.GetAllAsync());
+        return idle
+            .Where(c => !(closures.TryGetValue((c.TableId, c.CustomerName.ToLowerInvariant()), out var closedAt) && c.LastOrderAt <= closedAt))
+            .OrderBy(c => c.LastOrderAt)
+            .Select(c => new IdleComandaDto(c.TableId, c.TableName, c.CustomerName, c.LastOrderAt, c.Orders))
+            .ToList();
+    }
+
     /// <summary>Kitchen board (spec 020): bounded, so it does not grow with the restaurant's whole history.</summary>
     public const int KitchenMaxOrders = 500;
     public static readonly TimeSpan KitchenFinishedWindow = TimeSpan.FromHours(24);

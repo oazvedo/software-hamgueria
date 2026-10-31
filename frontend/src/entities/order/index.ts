@@ -16,6 +16,8 @@ export {
   updateOrder,
   closeComanda,
   isComandaClosed,
+  useIdleComandas,
+  type IdleComanda,
 } from '@/entities/order/api/orderApi'
 export {
   STATUS_META,

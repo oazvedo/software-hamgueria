@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { LoginForm, useAuthStore } from '@/features/auth'
 import { AuditLog } from '@/widgets/audit-log'
+import { IdleComandas } from '@/widgets/idle-comandas'
 import { KitchenQueue } from '@/widgets/kitchen-queue'
 import { KitchenTables } from '@/widgets/kitchen-tables'
 import { KitchenTopBar } from '@/widgets/kitchen-top-bar'
@@ -49,6 +50,8 @@ function KitchenBoard() {
           <h1 className="text-lg font-semibold text-foreground">Pedidos</h1>
           <ViewToggle value={view} onChange={setView} />
         </div>
+
+        <IdleComandas />
 
         {isLoading && (
           <div className="flex justify-center p-16">

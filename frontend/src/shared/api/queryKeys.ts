@@ -6,5 +6,6 @@ export const queryKeys = {
   tableOrders: (tableId: string) => ['tableOrders', tableId] as const,
   tableComandas: (tableId: string) => ['tableComandas', tableId] as const,
   allOrders: ['allOrders'] as const,
+  idleComandas: ['idleComandas'] as const,
   audit: (table: string) => ['audit', table] as const,
 }

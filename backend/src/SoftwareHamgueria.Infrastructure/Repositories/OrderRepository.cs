@@ -25,6 +25,16 @@ public class OrderRepository(AppDbContext context) : IOrderRepository
             .Include(o => o.Items).ThenInclude(i => i.Dish)
             .FirstOrDefaultAsync(o => o.Id == id);
 
+    public async Task<IReadOnlyList<(Guid TableId, string TableName, string CustomerName, DateTime LastOrderAt, int Orders)>> GetComandasIdleSinceAsync(DateTime idleSince)
+    {
+        var rows = await context.Orders
+            .GroupBy(o => new { o.TableId, o.Table.TableName, o.CustomerName })
+            .Select(g => new { g.Key.TableId, g.Key.TableName, g.Key.CustomerName, Last = g.Max(o => o.CreatedAt), Count = g.Count() })
+            .Where(g => g.Last < idleSince)
+            .ToListAsync();
+        return rows.Select(r => (r.TableId, r.TableName, r.CustomerName, r.Last, r.Count)).ToList();
+    }
+
     public async Task<IEnumerable<Order>> GetForKitchenAsync(DateTime finishedSince, int max) =>
         await context.Orders
             .Include(o => o.Table)
