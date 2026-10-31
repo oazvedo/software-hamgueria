@@ -50,6 +50,10 @@ jobs:
       - run: npm test
       - run: npm run lint
       - run: npm run build
+      # Interface gate (ADR 0015, spec 006): colors, noise, copy and motion detectors over frontend/src.
+      - name: Gate de interface
+        working-directory: .
+        run: sh scripts/ui/gate.sh
 
   e2e:
     runs-on: ubuntu-latest
@@ -77,3 +81,25 @@ jobs:
           name: playwright-traces
           path: frontend/test-results/
           retention-days: 7
+
+  # The production images (ADR 0023) build on every PR, so a broken Dockerfile shows up before a deploy (spec 013).
+  images:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Imagem da API
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          push: false
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+      - name: Imagem da tela (Caddy)
+        uses: docker/build-push-action@v6
+        with:
+          context: frontend
+          push: false
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
