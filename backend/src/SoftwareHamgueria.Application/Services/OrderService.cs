@@ -115,6 +115,8 @@ public class OrderService(
     public async Task CloseComandaAsync(CloseComandaDto dto)
     {
         await closeValidator.ValidateAndThrowAsync(dto);
+        _ = await tableRepository.GetByIdAsync(dto.TableId)
+            ?? throw new NotFoundException("A mesa informada não existe.");
         await comandaRepository.UpsertAsync(dto.TableId, dto.CustomerName.Trim());
     }
 
