@@ -89,4 +89,26 @@ public class BrowserTelemetryTests(HamgueriaApiFactory factory)
         Assert.Equal([HttpStatusCode.NoContent, HttpStatusCode.NoContent, HttpStatusCode.NoContent,
             HttpStatusCode.TooManyRequests, HttpStatusCode.TooManyRequests], statuses);
     }
+
+    [Fact(DisplayName = "023/CA-06: atrás do proxy, cada cliente tem o próprio limite (X-Forwarded-For)")]
+    public async Task RateLimit_IsPerForwardedClient()
+    {
+        using var limited = factory.WithWebHostBuilder(b => b.UseSetting("Telemetry:PermitPerMinute", "2"));
+        var client = limited.CreateClient();
+        async Task<HttpStatusCode> Post(string ip)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, "/api/telemetry/client-error")
+            {
+                Content = JsonContent.Create(new ClientErrorDto("e", null, null)),
+            };
+            request.Headers.Add("X-Forwarded-For", ip);
+            return (await client.SendAsync(request)).StatusCode;
+        }
+
+        var a = new[] { await Post("203.0.113.10"), await Post("203.0.113.10"), await Post("203.0.113.10") };
+        var b = await Post("203.0.113.20");
+
+        Assert.Equal([HttpStatusCode.NoContent, HttpStatusCode.NoContent, HttpStatusCode.TooManyRequests], a);
+        Assert.Equal(HttpStatusCode.NoContent, b);
+    }
 }

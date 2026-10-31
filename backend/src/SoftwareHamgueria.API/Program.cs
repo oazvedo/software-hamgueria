@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using SoftwareHamgueria.API.Audit;
 using Hangfire;
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.HttpOverrides;
 using SoftwareHamgueria.API.Controllers;
 using SoftwareHamgueria.API.Errors;
 using SoftwareHamgueria.API.Jobs;
@@ -81,7 +82,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.AddObservability();
-// Browser telemetry is public: at most 60 posts per minute per IP (spec 023).
+// Behind Caddy (ADR 0023) every request comes from the proxy: take the client IP from X-Forwarded-For (one hop).
+// The API is only reachable inside the compose network, so the header cannot be forged from outside.
+builder.Services.Configure<ForwardedHeadersOptions>(o =>
+{
+    o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    o.ForwardLimit = 1;
+    o.KnownIPNetworks.Clear();
+    o.KnownProxies.Clear();
+});
+// Browser telemetry is public: at most 60 posts per minute per client IP (spec 023).
 builder.Services.AddRateLimiter(o =>
 {
     o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -116,6 +126,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Software Hamgueria API v1"));
 }
 
+app.UseForwardedHeaders();
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
