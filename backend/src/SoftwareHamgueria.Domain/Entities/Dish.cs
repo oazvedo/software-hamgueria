@@ -7,13 +7,13 @@ public class Dish
     public string Description { get; private set; } = string.Empty;
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
-    public double Price { get; private set; }
+    public decimal Price { get; private set; }
     public Category Category { get; private set; }
     public bool IsActive { get; private set; }
 
     protected Dish() { }
 
-    public Dish(string name, string description, double price, Category category)
+    public Dish(string name, string description, decimal price, Category category)
     {
         Id = Guid.NewGuid();
         Name = name;
@@ -25,7 +25,7 @@ public class Dish
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public void Update(string name, string description, double price, Category category)
+    public void Update(string name, string description, decimal price, Category category)
     {
         Name = name;
         Description = description;

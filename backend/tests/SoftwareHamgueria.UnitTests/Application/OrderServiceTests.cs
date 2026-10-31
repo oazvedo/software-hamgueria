@@ -21,7 +21,7 @@ public class OrderServiceTests
     private readonly OrderService _sut;
 
     private readonly Table _table = new("Mesa 01");
-    private readonly Dish _dish = new("Burger Monolito", "Resolve tudo sozinho.", 34.90, Category.Hamburgers);
+    private readonly Dish _dish = new("Burger Monolito", "Resolve tudo sozinho.", 34.90m, Category.Hamburgers);
 
     public OrderServiceTests()
     {

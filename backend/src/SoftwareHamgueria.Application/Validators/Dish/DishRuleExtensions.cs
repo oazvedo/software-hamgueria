@@ -15,8 +15,11 @@ public static class DishRuleExtensions
         rule.Must(d => d is null || d.Length <= Limits.DishDescription)
             .WithMessage($"A descrição do prato pode ter no máximo {Limits.DishDescription} caracteres.");
 
-    public static IRuleBuilderOptions<T, double> DishPrice<T>(this IRuleBuilder<T, double> rule) =>
-        rule.GreaterThan(0).WithMessage("O preço do prato precisa ser maior que zero.");
+    public static IRuleBuilderOptions<T, decimal> DishPrice<T>(this IRuleBuilder<T, decimal> rule) =>
+        rule.GreaterThan(0).WithMessage("O preço do prato precisa ser maior que zero.")
+            // numeric(10,2) in the database (spec 016): reject what would be silently rounded.
+            .PrecisionScale(10, 2, ignoreTrailingZeros: true)
+            .WithMessage("O preço do prato vai até 99.999.999,99, com no máximo 2 casas decimais.");
 
     public static IRuleBuilderOptions<T, Category> DishCategory<T>(this IRuleBuilder<T, Category> rule) =>
         rule.IsInEnum().WithMessage("Escolha uma categoria do cardápio.");
