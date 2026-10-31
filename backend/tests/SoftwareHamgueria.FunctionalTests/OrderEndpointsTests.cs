@@ -143,6 +143,21 @@ public class OrderEndpointsTests(HamgueriaApiFactory factory)
         await AssertNothingSavedAsync(customer);
     }
 
+    [Fact(DisplayName = "005/CA-03: alterar o pedido troca os itens e publica order.updated")]
+    public async Task Put_ValidItems_ReplacesItems()
+    {
+        var order = await _api.CreateOrderAsync(ApiClient.UniqueCustomer());
+        var otherDish = (await _api.GetDishesAsync()).First(d => d.IsActive && d.Id != order.Items[0].DishId);
+
+        var response = await _api.UpdateOrderAsync(order.Id,
+            new UpdateOrderDto([new OrderItemDto(otherDish.Id, 3, "sem cebola")]));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var item = Assert.Single((await _api.GetOrderAsync(order.Id)).Items);
+        Assert.Equal((otherDish.Id, 3, "sem cebola"), (item.DishId, item.Quantity, item.Notes));
+        Assert.True(factory.Publisher.WasPublished("order.updated", order.Id.ToString()));
+    }
+
     [Fact(DisplayName = "003/CA-03: alterar o pedido com quantidade 0 é recusado e o pedido não muda")]
     public async Task Put_QuantityZero_Returns400()
     {
