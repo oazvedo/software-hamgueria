@@ -8,3 +8,4 @@
 ## Backlog
 - Rotina para comandas abertas há mais de um dia (decidir a regra: fechar ou só avisar a cozinha).
 - Traces do Hangfire no OpenTelemetry (ADR 0028), quando houver mais de um job.
+- Teste instável raro na suíte funcional (1 falha em 10 rodadas depois da correção da porta do broker, causa não capturada). Se voltar no CI, rodar com `--output detailed` e anotar aqui.
