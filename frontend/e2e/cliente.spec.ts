@@ -10,8 +10,8 @@ test('001/CA-07, CA-08, CA-13: cliente pede, vê comanda e mesa, fecha a comanda
   await placeOrder(page, customer)
   await expect(page.getByText('1 pedido · total da comanda')).toBeVisible()
 
-  // a mesa mostra a comanda
-  await page.getByRole('link', { name: 'Ver a mesa toda' }).click()
+  // a lista de comandas da mesa mostra a comanda (spec 007)
+  await page.getByRole('link', { name: 'Todas as comandas da mesa' }).click()
   await expect(page.getByText(customer).first()).toBeVisible()
   await page.goBack()
 

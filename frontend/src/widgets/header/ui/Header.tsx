@@ -30,9 +30,13 @@ export function Header() {
               >
                 ~/comanda
               </Link>
+            </>
+          )}
+          {tableId && (
+            <>
               {/* EXCEÇÃO ao ruido-scan/code-crumb: navegação em forma de caminho de terminal, identidade dev do produto (spec 006, RN-02) */}
-              <Link to={`/mesa/${tableId}`} className={linkClass}>
-                ~/mesa
+              <Link to={`/comandas/${tableId}`} className={linkClass}>
+                ~/comandas
               </Link>
             </>
           )}
