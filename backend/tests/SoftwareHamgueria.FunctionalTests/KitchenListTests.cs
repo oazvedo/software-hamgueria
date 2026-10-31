@@ -42,6 +42,37 @@ public class KitchenListTests(HamgueriaApiFactory factory)
         Assert.Contains(oldActive, ids);
         Assert.Contains(recentDone, ids);
         Assert.DoesNotContain(oldDone, ids);
-        Assert.True(ids.Count <= SoftwareHamgueria.Application.Services.OrderService.KitchenMaxOrders);
+    }
+
+    [Fact(DisplayName = "020/CA-03: com mais de 500 pedidos em andamento, a cozinha recebe exatamente os 500 mais recentes")]
+    public async Task KitchenList_IsCappedAt500_NewestFirst()
+    {
+        // Own database: 520 extra active orders would crowd the shared one the other tests read.
+        await using var isolated = new HamgueriaApiFactory();
+        await isolated.InitializeAsync();
+        var kitchen = isolated.CreateApiClient();
+        var tableId = await kitchen.FirstTableIdAsync();
+        await using (var db = new NpgsqlConnection(isolated.ConnectionString))
+        {
+            await db.OpenAsync();
+            // i minutes ago: i = 1 is the newest, i = 520 the oldest.
+            await using var insert = new NpgsqlCommand("""
+                INSERT INTO "Orders" ("Id", "TableId", "CustomerName", "Status", "CreatedAt", "UpdatedAt")
+                SELECT gen_random_uuid(), @table, 'Lote ' || i, @status, now() - make_interval(mins => i), now() - make_interval(mins => i)
+                FROM generate_series(1, 520) AS i
+                """, db);
+            insert.Parameters.AddWithValue("table", tableId);
+            insert.Parameters.AddWithValue("status", (int)OrderStatus.Created);
+            await insert.ExecuteNonQueryAsync();
+        }
+        await kitchen.LoginAsAdminAsync();
+
+        var names = (await kitchen.Http.GetFromJsonAsync<List<OrderResponseDto>>("/api/order", kitchen.Json))!.Select(o => o.CustomerName).ToList();
+
+        Assert.Equal(SoftwareHamgueria.Application.Services.OrderService.KitchenMaxOrders, names.Count);
+        Assert.Equal("Lote 1", names[0]);
+        Assert.Contains("Lote 500", names);
+        Assert.DoesNotContain("Lote 501", names);
+        Assert.DoesNotContain("Lote 520", names);
     }
 }
