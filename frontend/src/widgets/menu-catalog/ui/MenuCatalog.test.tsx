@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it } from 'vitest'
-import { screen, within } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { act, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { useOrderStore } from '@/entities/order'
@@ -69,5 +69,48 @@ describe('cardápio', () => {
 
     expect(await screen.findByText('Não foi possível carregar o cardápio')).toBeTruthy()
     expect(document.body.textContent).not.toContain('/api/dish')
+  })
+
+  describe('008/RN-02: a barra marca a seção na tela', () => {
+    let fire: (target: Element) => void = () => {}
+    let margin = ''
+    beforeEach(() => {
+      vi.stubGlobal(
+        'IntersectionObserver',
+        class {
+          constructor(cb: IntersectionObserverCallback, options?: IntersectionObserverInit) {
+            margin = options?.rootMargin ?? ''
+            fire = (target) =>
+              cb([{ target, isIntersecting: true, boundingClientRect: { top: 0 } } as unknown as IntersectionObserverEntry], this as never)
+          }
+          observe() {}
+          disconnect() {}
+        },
+      )
+    })
+    afterEach(() => vi.unstubAllGlobals())
+
+    it('a seção que entra na faixa fica marcada na barra', async () => {
+      renderWithProviders(<MenuCatalog />)
+      const nav = await screen.findByRole('navigation', { name: 'Categorias do cardápio' })
+      const links = within(nav).getAllByRole('link')
+
+      act(() => fire(document.getElementById(links[1].getAttribute('href')!.slice(1))!))
+
+      expect(links[1].getAttribute('aria-current')).toBe('true')
+      expect(links[0].getAttribute('aria-current')).toBeNull()
+      expect(margin).toMatch(/^-\d+px 0px -60% 0px$/)
+    })
+
+    it('no fim da página, a última categoria fica marcada mesmo sem entrar na faixa', async () => {
+      renderWithProviders(<MenuCatalog />)
+      const nav = await screen.findByRole('navigation', { name: 'Categorias do cardápio' })
+      const links = within(nav).getAllByRole('link')
+      Object.defineProperty(document.documentElement, 'scrollHeight', { configurable: true, value: window.innerHeight })
+
+      act(() => window.dispatchEvent(new Event('scroll')))
+
+      expect(links.at(-1)!.getAttribute('aria-current')).toBe('true')
+    })
   })
 })

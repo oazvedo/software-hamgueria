@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import { CircleAlert } from 'lucide-react'
 import { CATEGORY_META, CATEGORY_ORDER, DishCard, useDishes } from '@/entities/dish'
 import type { Dish, DishCategory } from '@/entities/dish'
@@ -9,26 +9,40 @@ import { Alert, AlertDescription, AlertTitle, Spinner } from '@/shared/ui/shadcn
 
 const sectionId = (category: DishCategory) => `cardapio-${CATEGORY_META[category].slug}`
 
-/** Highlights the category whose section is at the top of the screen. No IntersectionObserver (tests): first one. */
-function useSectionOnScreen(categories: DishCategory[]) {
+/**
+ * Highlights the category whose section is just under the sticky bar. The observed band starts at the bar's bottom
+ * (measured, not hard-coded), and at the end of the page the last category wins, since a short last section may never
+ * reach the band. Without IntersectionObserver (old browsers), the first category stays marked.
+ */
+function useSectionOnScreen(categories: DishCategory[], bar: RefObject<HTMLElement | null>) {
   const [current, setCurrent] = useState<DishCategory | undefined>(categories[0])
   const key = categories.join(',')
   useEffect(() => {
     setCurrent(categories[0])
     if (typeof IntersectionObserver === 'undefined') return
+    const top = Math.round(bar.current?.getBoundingClientRect().bottom ?? 0)
     const observer = new IntersectionObserver(
       (entries) => {
-        const top = entries.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0]
-        const category = top?.target.getAttribute('data-category') as DishCategory | null
+        const first = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0]
+        const category = first?.target.getAttribute('data-category') as DishCategory | null
         if (category) setCurrent(category)
       },
-      { rootMargin: '-120px 0px -60% 0px' },
+      { rootMargin: `-${top}px 0px -60% 0px` },
     )
     categories.forEach((c) => {
       const el = document.getElementById(sectionId(c))
       if (el) observer.observe(el)
     })
-    return () => observer.disconnect()
+    const atEnd = () => {
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) setCurrent(categories.at(-1))
+    }
+    window.addEventListener('scroll', atEnd, { passive: true })
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('scroll', atEnd)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key])
   return [current, setCurrent] as const
@@ -49,7 +63,8 @@ export function MenuCatalog() {
     return map
   }, [dishes])
   const categories = CATEGORY_ORDER.filter((c) => (grouped.get(c)?.length ?? 0) > 0)
-  const [current, setCurrent] = useSectionOnScreen(categories)
+  const bar = useRef<HTMLElement>(null)
+  const [current, setCurrent] = useSectionOnScreen(categories, bar)
 
   if (isLoading) {
     return (
@@ -75,7 +90,7 @@ export function MenuCatalog() {
 
   return (
     <div className="flex flex-col gap-8">
-      <nav aria-label="Categorias do cardápio" className="sticky top-14 z-[5] -mx-6 bg-background px-6 py-2">
+      <nav ref={bar} aria-label="Categorias do cardápio" className="sticky top-14 z-[5] -mx-6 bg-background px-6 py-2">
         <div className="flex gap-1 overflow-x-auto rounded-lg border border-border bg-secondary/40 p-1 [scrollbar-width:none]">
           {categories.map((cat) => (
             <CategoryTab
