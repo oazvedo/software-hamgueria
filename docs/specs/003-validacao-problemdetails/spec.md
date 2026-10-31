@@ -1,6 +1,6 @@
 # 003. Validação de entrada e erros padronizados: Spec
 
-- **Status:** Rascunho
+- **Status:** Concluída
 - **Data:** 2026-10-31
 
 ## Problema
@@ -23,8 +23,8 @@ uma mensagem neutra, sem expor nada de dentro do sistema.
 - Como **mantenedor**, quero que toda recusa siga o mesmo formato para a tela tratar todas do mesmo jeito.
 
 ## Regras de negócio
-- RN-01 (pedido): tem mesa, nome de comanda e **pelo menos um item**. Cada item tem um prato e quantidade de **1 a 20**
-  (Dúvida 1). A observação do item é opcional, com **até 200 caracteres**.
+- RN-01 (pedido): tem mesa, nome de comanda e **pelo menos um item**. Cada item tem um prato e quantidade de **1 a 20**,
+  somando as repetições do mesmo prato. A observação do item é opcional, com **até 200 caracteres**.
 - RN-02 (comanda): o nome é obrigatório, com **até 60 caracteres** depois de tirar os espaços das pontas. Vale para
   enviar pedido, abrir e fechar comanda.
 - RN-03 (prato): nome obrigatório com até 200 caracteres, descrição com até 1000, **preço maior que zero** e categoria
@@ -69,6 +69,8 @@ uma mensagem neutra, sem expor nada de dentro do sistema.
   recebe ao enviar o pedido ou fechar a comanda, então mostra a mensagem do sistema no aviso, e não o texto genérico.
 - **CA-13:** Dado o app em modo simulado, quando os cenários CA-02 a CA-09 são repetidos, então as recusas têm as
   mesmas mensagens e o mesmo formato do servidor real.
+- **CA-14:** Dada a cozinha autenticada, quando finalizar ou cancelar um pedido é recusado, então o aviso mostra a
+  mensagem do sistema, e não o texto genérico.
 
 ## Impacto na linha de base
 - **001/CA-04:** continua recusado. Muda a resposta: o motivo passa a vir em português, indicando o campo "nome da
@@ -88,11 +90,10 @@ uma mensagem neutra, sem expor nada de dentro do sistema.
 - Reescrever os avisos antigos que não vêm do servidor (candidato "Copy existente nas regras da `visant-copy`").
 - Tradução para outros idiomas: as mensagens são só em português.
 
-## Dúvidas em aberto
-- **Dúvida 1: limite máximo de quantidade por item.** Opções: (a) 20, (b) 99, (c) sem limite, só maior que zero.
-  **Recomendação: (a) 20**, alto para uma mesa e baixo o bastante para barrar erro de digitação. Vale também para a
-  soma quando o mesmo prato aparece duas vezes (001/RN-04).
-- **Dúvida 2: avisos da cozinha.** Os avisos genéricos de finalizar e cancelar pedido também passam a mostrar a
-  mensagem do sistema? **Recomendação: sim**, no mesmo bloco, porque o custo é o mesmo do CA-12.
-- **Dúvida 3: espaços nas pontas.** Nomes (comanda, prato, mesa) são aparados antes de checar vazio e tamanho?
-  **Recomendação: sim**, como já acontece com o nome da comanda ao gravar.
+## Decisões (dúvidas resolvidas em 2026-10-31)
+- **Quantidade por item:** de 1 a 20. O limite vale também para a soma quando o mesmo prato aparece duas vezes no
+  pedido (001/RN-04).
+- **Avisos da cozinha:** finalizar e cancelar pedido também mostram a mensagem do sistema, no mesmo bloco do CA-12
+  (CA-14).
+- **Espaços nas pontas:** nomes de comanda, prato e mesa são aparados antes de checar vazio e tamanho, e gravados
+  aparados.
