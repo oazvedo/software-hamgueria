@@ -4,7 +4,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using SoftwareHamgueria.API.Errors;
+using SoftwareHamgueria.API.Health;
 using SoftwareHamgueria.API.Filters;
 using SoftwareHamgueria.Application;
 using SoftwareHamgueria.Application.Configuration;
@@ -98,8 +100,11 @@ if (app.Environment.IsDevelopment())
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-// Infrastructure probe for compose and Caddy (ADR 0023): "Healthy" 200 or "Unhealthy" 503, no details.
-app.MapHealthChecks("/api/health");
+// Infrastructure probe for compose and Caddy (ADR 0023): only the database, "Healthy" 200 or "Unhealthy" 503.
+// A broker outage must not mark the API unhealthy (spec 005, RN-07).
+app.MapHealthChecks("/api/health", new HealthCheckOptions { Predicate = c => c.Tags.Contains(HealthTags.Database) });
+// Database + queue + events waiting; "Degraded" (queue down) still answers 200 (spec 005, RN-08).
+app.MapHealthChecks("/api/health/details", new HealthCheckOptions { ResponseWriter = HealthResponseWriter.WriteDetails });
 app.Run();
 
 // Exposes the entry point to WebApplicationFactory<Program> in the functional tests (ADR 0016).
