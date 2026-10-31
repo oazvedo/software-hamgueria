@@ -38,7 +38,7 @@ export async function sendCart(page: Page, customer: string) {
   const comandaPicker = dialog.getByRole('combobox')
   if (await comandaPicker.isVisible()) {
     await comandaPicker.click()
-    await page.getByRole('option', { name: /nova comanda/ }).click()
+    await page.getByRole('option', { name: /nova comanda/i }).click()
   }
   await dialog.getByPlaceholder('ex.: joão').fill(customer)
   await dialog.getByRole('button', { name: 'Enviar pedido' }).click()

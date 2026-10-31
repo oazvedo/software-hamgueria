@@ -27,9 +27,9 @@ public static class DatabaseSeeder
             new Dish("Wrap DRY", "Don't Repeat Yourself: cada ingrediente aparece uma vez só.", 24.90, Category.Salads),
 
             // Chopp por Cargo & Combustível (Drinks)
-            new Dish("Chopp Estagiário", "150ml. Copo americano — é o que tem no orçamento.", 6.00, Category.Drinks),
+            new Dish("Chopp Estagiário", "150ml. Copo americano, que é o que cabe no orçamento.", 6.00, Category.Drinks),
             new Dish("Chopp Júnior", "300ml. Já dá pra comemorar o primeiro deploy sem quebrar nada.", 10.00, Category.Drinks),
-            new Dish("Chopp Pleno", "500ml. Pint cheia — você já sabe o que está fazendo.", 14.00, Category.Drinks),
+            new Dish("Chopp Pleno", "500ml. Pint cheia: você já sabe o que está fazendo.", 14.00, Category.Drinks),
             new Dish("Chopp Sênior", "700ml. Caneca respeitável pra quem revisa o PR dos outros.", 18.00, Category.Drinks),
             new Dish("Chopp Tech Lead", "1 litro. Metade é pra aguentar as reuniões de alinhamento.", 26.00, Category.Drinks),
             new Dish("Chopp Arquiteto", "Torre de 3 litros. Os diagramas ficam mais abstratos a cada gole.", 70.00, Category.Drinks),

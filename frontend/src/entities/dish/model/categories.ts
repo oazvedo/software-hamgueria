@@ -16,7 +16,7 @@ export const CATEGORY_META: Record<DishCategory, CategoryMeta> = {
     slug: 'estagiarios',
     label: 'Estagiários',
     short: 'Setup',
-    tagline: 'Entradas — baratos, em grande quantidade e servem pra tudo',
+    tagline: 'Entradas: baratos, em grande quantidade e servem pra tudo',
     icon: '🐣',
   },
   Hamburgers: {
@@ -24,7 +24,7 @@ export const CATEGORY_META: Record<DishCategory, CategoryMeta> = {
     slug: 'principais',
     label: 'Monolitos & Microserviços',
     short: 'Build',
-    tagline: 'Pratos principais — builds pesados que resolvem o problema',
+    tagline: 'Pratos principais: builds pesados que resolvem o problema',
     icon: '🏗️',
   },
   Salads: {
@@ -32,7 +32,7 @@ export const CATEGORY_META: Record<DishCategory, CategoryMeta> = {
     slug: 'clean-code',
     label: 'Clean Code',
     short: 'Refactor',
-    tagline: 'Saladas — leves, limpas, bem indentadas e sem gambiarra',
+    tagline: 'Saladas: leves, limpas, bem indentadas e sem gambiarra',
     icon: '✨',
   },
   Drinks: {
@@ -48,7 +48,7 @@ export const CATEGORY_META: Record<DishCategory, CategoryMeta> = {
     slug: 'deploy',
     label: 'Deploy em Produção',
     short: 'Deploy',
-    tagline: 'Sobremesas — a recompensa doce depois do merge',
+    tagline: 'Sobremesas: a recompensa doce depois do merge',
     icon: '🚀',
   },
 }

@@ -28,6 +28,7 @@ export {
 export { StatusBadge } from '@/entities/order/ui/StatusBadge'
 export { OrderPipeline } from '@/entities/order/ui/OrderPipeline'
 export { OrderCard } from '@/entities/order/ui/OrderCard'
+export { ItemNote } from '@/entities/order/ui/ItemNote'
 export { orderTotal } from '@/entities/order/model/orderTotal'
 export type { OrderItem, OrderDraft, CreateOrderPayload, OrderStatus } from '@/entities/order/model/types'
 export type { OrderResponse, OrderItemResponse } from '@/entities/order/api/orderApi'

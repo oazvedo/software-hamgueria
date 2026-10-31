@@ -21,9 +21,9 @@ export const mockDishes: Dish[] = [
   { id: 'd10', name: 'Wrap DRY', description: "Don't Repeat Yourself: cada ingrediente aparece uma vez só.", price: 24.9, category: 'Salads', isActive: true, createdAt: now, updatedAt: now },
 
   // Chopp por Cargo & Combustível (Drinks)
-  { id: 'd11', name: 'Chopp Estagiário', description: '150ml. Copo americano — é o que tem no orçamento.', price: 6.0, category: 'Drinks', isActive: true, createdAt: now, updatedAt: now },
+  { id: 'd11', name: 'Chopp Estagiário', description: '150ml. Copo americano, que é o que cabe no orçamento.', price: 6.0, category: 'Drinks', isActive: true, createdAt: now, updatedAt: now },
   { id: 'd12', name: 'Chopp Júnior', description: '300ml. Já dá pra comemorar o primeiro deploy sem quebrar nada.', price: 10.0, category: 'Drinks', isActive: true, createdAt: now, updatedAt: now },
-  { id: 'd13', name: 'Chopp Pleno', description: '500ml. Pint cheia — você já sabe o que está fazendo.', price: 14.0, category: 'Drinks', isActive: true, createdAt: now, updatedAt: now },
+  { id: 'd13', name: 'Chopp Pleno', description: '500ml. Pint cheia: você já sabe o que está fazendo.', price: 14.0, category: 'Drinks', isActive: true, createdAt: now, updatedAt: now },
   { id: 'd14', name: 'Chopp Sênior', description: '700ml. Caneca respeitável pra quem revisa o PR dos outros.', price: 18.0, category: 'Drinks', isActive: true, createdAt: now, updatedAt: now },
   { id: 'd15', name: 'Chopp Tech Lead', description: '1 litro. Metade é pra aguentar as reuniões de alinhamento.', price: 26.0, category: 'Drinks', isActive: true, createdAt: now, updatedAt: now },
   { id: 'd16', name: 'Chopp Arquiteto', description: 'Torre de 3 litros. Os diagramas ficam mais abstratos a cada gole.', price: 70.0, category: 'Drinks', isActive: true, createdAt: now, updatedAt: now },

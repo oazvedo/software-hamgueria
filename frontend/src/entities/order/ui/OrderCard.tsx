@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
+import { ChevronRight } from 'lucide-react'
 import { OrderPipeline } from '@/entities/order/ui/OrderPipeline'
 import { StatusBadge } from '@/entities/order/ui/StatusBadge'
+import { ItemNote } from '@/entities/order/ui/ItemNote'
 import { orderTotal } from '@/entities/order/model/orderTotal'
 import type { OrderResponse } from '@/entities/order/api/orderApi'
 import { formatCurrency } from '@/shared/lib/formatCurrency'
@@ -31,9 +33,7 @@ export function OrderCard({ order }: { order: OrderResponse }) {
           <li key={item.dishId} className="flex items-start justify-between gap-3">
             <span className="text-foreground">
               <span className="font-mono text-muted-foreground">{item.quantity}×</span> {item.dishName}
-              {item.notes && (
-                <span className="mt-0.5 block text-xs text-muted-foreground">↳ {item.notes}</span>
-              )}
+              {item.notes && <ItemNote notes={item.notes} className="text-muted-foreground" />}
             </span>
             <span className="font-mono text-muted-foreground">
               {formatCurrency(item.price * item.quantity)}
@@ -45,9 +45,10 @@ export function OrderCard({ order }: { order: OrderResponse }) {
       <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
         <Link
           to={`/order/${order.id}`}
-          className="font-mono text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          className="inline-flex items-center gap-0.5 text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
         >
-          ver detalhe →
+          Ver detalhe
+          <ChevronRight aria-hidden="true" className="size-3.5" />
         </Link>
         <span className="font-mono font-semibold text-foreground">{formatCurrency(orderTotal(order))}</span>
       </div>

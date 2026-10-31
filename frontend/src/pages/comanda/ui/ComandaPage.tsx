@@ -114,8 +114,8 @@ export function ComandaPage() {
 
             <div className="mt-6 flex justify-center">
               {closed ? (
-                <p className="font-mono text-xs text-muted-foreground">
-                  // comanda fechada — abra uma nova pelo cardápio
+                <p className="text-sm text-muted-foreground">
+                  Comanda fechada. Para pedir de novo, abra uma nova pelo cardápio.
                 </p>
               ) : (
                 <Button asChild variant="outline">

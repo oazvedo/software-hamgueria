@@ -3,8 +3,9 @@ import { Check, ChefHat, Lock, LogOut, X } from 'lucide-react'
 import { LoginForm, useAuthStore } from '@/features/auth'
 import { useManageOrder } from '@/features/manage-order'
 import { useCloseComanda } from '@/features/close-comanda'
-import { StatusBadge, isComandaClosed, isTerminal, orderTotal, useAllOrders } from '@/entities/order'
+import { ItemNote, StatusBadge, isComandaClosed, isTerminal, orderTotal, useAllOrders } from '@/entities/order'
 import type { OrderResponse } from '@/entities/order'
+import { DataText } from '@/shared/ui/atoms'
 import { Button, Spinner } from '@/shared/ui/shadcn'
 import { formatCurrency } from '@/shared/lib/formatCurrency'
 import { cn } from '@/shared/lib/cn'
@@ -16,6 +17,7 @@ function KitchenTopBar({ onLogout }: { onLogout?: () => void }) {
         <div className="flex items-center gap-2 font-semibold text-foreground">
           <ChefHat className="size-5 text-brand" />
           Produção
+          {/* EXCEÇÃO ao ruido-scan/code-crumb: rótulo de seção em forma de comentário, identidade dev do produto (spec 006, RN-02) */}
           <span className="font-mono text-xs font-normal text-muted-foreground">// cozinha</span>
         </div>
         {onLogout && (
@@ -67,18 +69,16 @@ function ActiveCard({ order }: { order: OrderResponse }) {
             comanda <span className="text-foreground">{order.customerName}</span>
           </p>
         </div>
-        <span className="font-mono text-xs text-muted-foreground">{waitingLabel(order.createdAt)}</span>
+        <DataText className="text-xs text-muted-foreground">{waitingLabel(order.createdAt)}</DataText>
       </div>
 
       <ul className="my-4 flex flex-col gap-1.5 text-sm">
         {order.items.map((item) => (
           <li key={item.dishId}>
             <span className="text-foreground">
-              <span className="font-mono text-muted-foreground">{item.quantity}×</span> {item.dishName}
+              <DataText className="text-muted-foreground">{item.quantity}×</DataText> {item.dishName}
             </span>
-            {item.notes && (
-              <span className="mt-0.5 block text-xs font-medium text-brand">↳ {item.notes}</span>
-            )}
+            {item.notes && <ItemNote notes={item.notes} className="font-medium text-brand" />}
           </li>
         ))}
       </ul>
@@ -97,7 +97,7 @@ function FinishedRow({ order }: { order: OrderResponse }) {
         <span className="text-muted-foreground">{order.customerName}</span>
       </div>
       <div className="flex items-center gap-3">
-        <span className="font-mono text-xs text-muted-foreground">{formatCurrency(orderTotal(order))}</span>
+        <DataText className="text-xs text-muted-foreground">{formatCurrency(orderTotal(order))}</DataText>
         <StatusBadge status={order.status} />
       </div>
     </li>
@@ -158,20 +158,23 @@ function OrderRow({ order }: { order: OrderResponse }) {
   return (
     <div className="rounded-lg border border-border bg-background/40 p-3">
       <div className="flex items-center justify-between gap-3">
-        <span className="font-mono text-xs text-muted-foreground">
+        <DataText className="text-xs text-muted-foreground">
           order/<span className="text-foreground">{order.id.slice(0, 8)}</span>
           <span className="mx-2">·</span>
           {waitingLabel(order.createdAt)}
+        </DataText>
+        {/* The badge keeps its one line on narrow screens; the id/time line wraps instead. */}
+        <span className="shrink-0">
+          <StatusBadge status={order.status} />
         </span>
-        <StatusBadge status={order.status} />
       </div>
       <ul className="mt-2 flex flex-col gap-1 text-sm">
         {order.items.map((item) => (
           <li key={item.dishId}>
             <span className="text-foreground">
-              <span className="font-mono text-muted-foreground">{item.quantity}×</span> {item.dishName}
+              <DataText className="text-muted-foreground">{item.quantity}×</DataText> {item.dishName}
             </span>
-            {item.notes && <span className="text-xs font-medium text-brand"> ↳ {item.notes}</span>}
+            {item.notes && <ItemNote notes={item.notes} inline className="font-medium text-brand" />}
           </li>
         ))}
       </ul>
@@ -186,9 +189,9 @@ function TableCard({ table }: { table: TableGroup }) {
     <section className="rounded-xl border border-border bg-card p-5">
       <div className="mb-3 flex items-center justify-between gap-3 border-b border-border pb-3">
         <h3 className="font-semibold text-foreground">{table.tableName}</h3>
-        <span className="font-mono text-xs text-muted-foreground">
-          {table.comandas.length} {table.comandas.length === 1 ? 'comanda' : 'comandas'} ·{' '}
-          {formatCurrency(table.total)}
+        <span className="text-xs text-muted-foreground">
+          <DataText>{table.comandas.length}</DataText> {table.comandas.length === 1 ? 'comanda' : 'comandas'} ·{' '}
+          <DataText>{formatCurrency(table.total)}</DataText>
         </span>
       </div>
 
@@ -205,14 +208,14 @@ function TableCard({ table }: { table: TableGroup }) {
                   </span>
                 ) : (
                   comanda.active > 0 && (
-                    <span className="font-mono text-xs text-brand">{comanda.active} em produção</span>
+                    <span className="text-xs text-brand">
+                      <DataText>{comanda.active}</DataText> em produção
+                    </span>
                   )
                 )}
               </p>
               <div className="flex items-center gap-2">
-                <span className="font-mono text-xs text-muted-foreground">
-                  {formatCurrency(comanda.total)}
-                </span>
+                <DataText className="text-xs text-muted-foreground">{formatCurrency(comanda.total)}</DataText>
                 {!comanda.closed && (
                   <Button
                     size="sm"
@@ -297,7 +300,7 @@ function KitchenBoard() {
 
         {isError && (
           <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            Falha ao carregar os pedidos. Sessão pode ter expirado — saia e entre novamente.
+            Não foi possível carregar os pedidos. Sua sessão pode ter expirado: saia e entre de novo.
           </p>
         )}
 
@@ -306,11 +309,11 @@ function KitchenBoard() {
             <section>
               <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-foreground">
                 Em produção
-                <span className="font-mono text-sm font-normal text-muted-foreground">({active.length})</span>
+                <DataText className="text-sm font-normal text-muted-foreground">({active.length})</DataText>
               </h2>
               {active.length === 0 ? (
                 <p className="rounded-xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
-                  Nenhum pedido na fila. 🎉
+                  Nenhum pedido na fila. A cozinha está em dia.
                 </p>
               ) : (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -324,7 +327,7 @@ function KitchenBoard() {
             <aside>
               <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-foreground">
                 Finalizados
-                <span className="font-mono text-sm font-normal text-muted-foreground">({finished.length})</span>
+                <DataText className="text-sm font-normal text-muted-foreground">({finished.length})</DataText>
               </h2>
               {finished.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Nada finalizado ainda.</p>
