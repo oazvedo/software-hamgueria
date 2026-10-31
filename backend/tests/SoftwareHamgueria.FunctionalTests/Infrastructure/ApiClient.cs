@@ -91,6 +91,9 @@ public sealed class ApiClient(HttpClient http, JsonSerializerOptions json)
     public Task<HttpResponseMessage> SetStatusAsync(Guid orderId, OrderStatus status) =>
         http.PatchAsJsonAsync($"/api/order/{orderId}/status", status, json);
 
+    public Task<HttpResponseMessage> UpdateOrderAsync(Guid orderId, UpdateOrderDto order) =>
+        http.PutAsJsonAsync($"/api/order/{orderId}", order, json);
+
     public Task<HttpResponseMessage> CancelAsync(Guid orderId) => http.PatchAsync($"/api/order/{orderId}/cancel", null);
 
     // ---- comandas

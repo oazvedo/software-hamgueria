@@ -1,5 +1,5 @@
 #!/bin/sh
-# Fumaça da pilha de produção (spec 004: CA-03, CA-06, CA-07, CA-08, CA-09), rodada localmente.
+# Fumaça da pilha de produção (spec 004: CA-03, CA-06 a CA-09; spec 005: CA-02 a CA-04, CA-07, CA-09), rodada localmente.
 # Sobe docker-compose.prod.yml com um projeto e um .env próprios (porta HTTP 8088), confere e derruba tudo,
 # volumes inclusos. Não toca na pilha de produção nem nos dados de dev.
 # Uso (da raiz do repo): sh scripts/deploy/smoke.sh
@@ -33,6 +33,14 @@ falha() { echo "FALHA $1"; erros=$((erros + 1)); }
 # confere <descrição> <comando...>
 confere() { d=$1; shift; if "$@" >/dev/null 2>&1; then ok "$d"; else falha "$d"; fi; }
 status() { curl -s -o /dev/null -w '%{http_code}' "$@"; }
+# ate <segundos> <descrição> <comando...>: OK quando o comando passar dentro do prazo
+ate() {
+  prazo=$1 d=$2; shift 2; i=0
+  until "$@" >/dev/null 2>&1; do
+    i=$((i + 1)); if [ $i -gt "$prazo" ]; then falha "$d"; return 0; fi; sleep 1
+  done
+  ok "$d"
+}
 espera_saude() {
   i=0
   until [ "$(curl -s "$BASE/api/health")" = "Healthy" ]; do
@@ -67,12 +75,25 @@ order=$(curl -s -H 'content-type: application/json' \
   "$BASE/api/order" | grep -o '"id":"[^"]*"' | head -n1 | sed 's/"id":"\(.*\)"/\1/')
 confere "CA-08: pedido criado pela tela publicada vai para a API real" test -n "$order"
 
-# CA-07: dados sobrevivem a reinício e a nova versão
-# `restart` (like a reboot of the instance) ignores depends_on: the API may come back before RabbitMQ and answer
-# 500 on order routes until the queue is up (see Backlog in tasks.md). Wait for every healthcheck, as the guide does.
+novo_pedido() {
+  [ "$(curl -s -o /dev/null -w '%{http_code}' -H 'content-type: application/json' \
+    -d "{\"tableId\":\"$table\",\"customerName\":\"Fumaca\",\"items\":[{\"dishId\":\"$dish\",\"quantity\":1}]}" \
+    "$BASE/api/order")" = 201 ]
+}
+
+# 005/CA-03, CA-07, CA-04: a fila cai com tudo no ar, pedidos seguem, e os eventos saem quando ela volta
+dc stop rabbitmq >/dev/null 2>&1
+confere "005/CA-03: com a fila parada, o pedido é aceito" novo_pedido
+confere "005/CA-07: com a fila parada, a saúde principal segue Healthy" test "$(curl -s "$BASE/api/health")" = Healthy
+ate 30 "005/CA-07: a saúde detalhada mostra a fila fora e eventos esperando" \
+  sh -c "curl -s '$BASE/api/health/details' | grep -q '\"queue\":\"Unhealthy\",\"pendingEvents\":[1-9]'"
+dc start rabbitmq >/dev/null 2>&1
+ate 60 "005/CA-04: a fila volta e os eventos esperando saem sozinhos" \
+  sh -c "curl -s '$BASE/api/health/details' | grep -q '\"queue\":\"Healthy\",\"pendingEvents\":0'"
+
+# 004/CA-07 e 005/CA-09: reiniciar tudo de uma vez (como um reboot da instância, sem ordem e sem `up --wait`)
 dc restart >/dev/null 2>&1
-dc up -d --wait >/dev/null 2>&1
-confere "CA-07: depois de reiniciar, a pilha volta saudável" espera_saude
+ate 60 "005/CA-09: depois de reiniciar tudo de uma vez, pedidos voltam sozinhos em até 1 minuto" novo_pedido
 confere "CA-07: o pedido continua lá depois do reinício" test "$(status "$BASE/api/order/$order")" = 200
 dc up -d --build --force-recreate --wait >/dev/null 2>&1
 confere "CA-07: depois de publicar de novo, a pilha volta saudável" espera_saude

@@ -113,6 +113,10 @@ function echoTable(id: string, body: { tableName?: string }) {
 export const handlers = [
   // Same contract as the API's health probe (spec 004): plain text, no details.
   http.get('/api/health', () => HttpResponse.text('Healthy')),
+  // Spec 005: database and queue, with the events waiting to be sent. In mock mode everything is up.
+  http.get('/api/health/details', () =>
+    HttpResponse.json({ status: 'Healthy', database: 'Healthy', queue: 'Healthy', pendingEvents: 0 }),
+  ),
   http.get('/api/dish', () => HttpResponse.json(mockDishes)),
   http.get('/api/table', () => HttpResponse.json(mockTables)),
 

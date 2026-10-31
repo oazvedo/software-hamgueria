@@ -41,3 +41,4 @@ Formato MADR enxuto ([template.md](template.md)). Para criar um novo, use a skil
 | [0022](0022-erros-em-problemdetails-com-handler-global.md) | Erros da API em ProblemDetails com handler global | Aceito |
 | [0023](0023-deploy-em-ec2-com-docker-compose-e-caddy.md) | Deploy em uma instância EC2 com Docker Compose e Caddy | Aceito |
 | [0024](0024-segredos-por-variaveis-de-ambiente-validados-no-startup.md) | Segredos por variáveis de ambiente, validados na inicialização | Aceito |
+| [0025](0025-eventos-de-pedido-com-fila-de-espera-em-memoria.md) | Eventos de pedido com fila de espera em memória e envio em segundo plano | Aceito |

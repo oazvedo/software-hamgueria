@@ -118,7 +118,6 @@ namespace SoftwareHamgueria.Infrastructure.Migrations
             modelBuilder.Entity("SoftwareHamgueria.Domain.Entities.OrderItem", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("DishId")

@@ -78,9 +78,8 @@ docker compose -f docker-compose.prod.yml up -d --build --wait
 Os dados ficam nos volumes (`hamgueria_postgres_data` e os demais) e sobrevivem a rebuild e reinício. **Nunca** use
 `down -v` em produção: o `-v` apaga os volumes.
 
-Depois de reiniciar a instância ou rodar `restart`, rode `up -d --wait` de novo. O `restart` ignora a ordem de
-dependência, e a API pode voltar antes da fila. Enquanto isso, as rotas de pedido respondem erro (ver Backlog da
-spec 004).
+Reiniciar a instância ou rodar `restart` não pede nada a mais: os serviços voltam em qualquer ordem, e a API
+reconecta sozinha na fila (spec 005).
 
 ## 7. Cópia de segurança (manual)
 Não há backup automático. Faça antes de cada deploy e com frequência:
@@ -96,6 +95,14 @@ Guarde o arquivo fora da instância (ex.: S3). Um snapshot do volume EBS também
 docker compose -f docker-compose.prod.yml logs -f api        # ou web, postgres, rabbitmq
 docker compose -f docker-compose.prod.yml ps                 # estado e saúde
 ```
+Para ver o banco, a fila e os eventos de pedido esperando envio:
+```bash
+curl -s http://localhost/api/health/details
+# {"status":"Degraded","database":"Healthy","queue":"Unhealthy","pendingEvents":3}
+```
+Com a fila fora, pedidos continuam funcionando e os eventos esperam em memória (até 1000) e saem quando ela volta.
+Se a API reiniciar com a fila fora, os eventos esperando se perdem (o log da `api` registra quantos).
+
 Os logs giram em 3 arquivos de 10 MB por serviço. Um erro 500 mostra um `traceId` ao cliente. Procure por ele no log
 da `api` (ADR 0022).
 
