@@ -49,11 +49,12 @@ public class OutboxTests(HamgueriaApiFactory factory)
             var response = await api.PostOrderAsync(await api.BuildOrderAsync(customer));
 
             Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
-            // No event may point at an order that does not exist.
+            // No order event may point at an order that does not exist. Only order.* rows count: other tests in this
+            // shared database insert sample rows with other keys (OutboxRetentionTests).
             Assert.Equal(0, await ScalarAsync("""
                 SELECT count(*) FROM "OutboxMessages" m
                 LEFT JOIN "Orders" o ON o."Id"::text = m."Payload"
-                WHERE o."Id" IS NULL
+                WHERE m."RoutingKey" LIKE 'order.%' AND o."Id" IS NULL
                 """));
         }
         finally
@@ -74,9 +75,9 @@ public class OutboxRetentionTests(HamgueriaApiFactory factory)
             await db.OpenAsync();
             await using var insert = new NpgsqlCommand("""
                 INSERT INTO "OutboxMessages" ("Id", "RoutingKey", "Payload", "CreatedAt", "SentAt", "Attempts") VALUES
-                    (gen_random_uuid(), 'old-sent', @m, now() - interval '30 days', now() - interval '30 days', 0),
-                    (gen_random_uuid(), 'old-unsent', @m, now() - interval '30 days', NULL, 0),
-                    (gen_random_uuid(), 'recent-sent', @m, now(), now() - interval '1 day', 0)
+                    (gen_random_uuid(), 'test.old-sent', @m, now() - interval '30 days', now() - interval '30 days', 0),
+                    (gen_random_uuid(), 'test.old-unsent', @m, now() - interval '30 days', NULL, 0),
+                    (gen_random_uuid(), 'test.recent-sent', @m, now(), now() - interval '1 day', 0)
                 """, db);
             insert.Parameters.AddWithValue("m", marker);
             await insert.ExecuteNonQueryAsync();
@@ -85,9 +86,9 @@ public class OutboxRetentionTests(HamgueriaApiFactory factory)
         await using (var scope = factory.Services.CreateAsyncScope())
             await scope.ServiceProvider.GetRequiredService<SoftwareHamgueria.Infrastructure.Jobs.OutboxRetentionJob>().RunAsync();
 
-        Assert.False(factory.Publisher.WasPublished("old-sent", marker));
-        Assert.True(factory.Publisher.WasPublished("old-unsent", marker));
-        Assert.True(factory.Publisher.WasPublished("recent-sent", marker));
+        Assert.False(factory.Publisher.WasPublished("test.old-sent", marker));
+        Assert.True(factory.Publisher.WasPublished("test.old-unsent", marker));
+        Assert.True(factory.Publisher.WasPublished("test.recent-sent", marker));
     }
 }
 
