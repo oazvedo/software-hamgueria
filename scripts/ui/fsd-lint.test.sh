@@ -23,11 +23,18 @@ arquivo profundo features/f/ui/F.tsx "import { useOrderStore } from '@/entities/
 arquivo shared shared/mocks/m.ts "import type { Dish } from '@/entities/dish'"
 arquivo dinamico app/router/r.tsx "const P = lazy(() => import('@/pages/menu'))"
 
+arquivo subpasta src/entities/dish/ui/D.tsx "import { AddDish } from '@/features/add-dish'"
+arquivo relativo src/entities/order/model/o.ts "import { Dish } from '../../dish/model/types'"
+arquivo efeito src/shared/lib/x.ts "import '@/entities/dish'"
+
 confere ok "imports dentro das regras" limpo
 confere falha "camada importando de cima (entities de features)" subindo
 confere falha "slices da mesma camada (entities/order de entities/dish)" cruzado
 confere falha "caminho profundo em vez da API pública" profundo
 confere falha "shared importando de entities" shared
 confere ok "import dinâmico do app para pages" dinamico
+confere falha "alvo é uma subpasta de src (gate.sh frontend/src/<alvo>)" subpasta/src/entities
+confere falha "import relativo que atravessa slices" relativo
+confere falha "import só de efeito (sem from)" efeito
 
 [ $erros -eq 0 ] && echo "fsd-lint.test: tudo certo" || { echo "fsd-lint.test: $erros erro(s)"; exit 1; }

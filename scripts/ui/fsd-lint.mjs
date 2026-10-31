@@ -3,14 +3,16 @@
 //   1. a layer imports only from layers below it: app > pages > widgets > features > entities > shared;
 //   2. two slices of the same layer do not import each other (shared has no slices);
 //   3. another slice is imported through its public API (its index), never a deep path.
-// Usage: node scripts/ui/fsd-lint.mjs [src dir]   (default frontend/src). Exit 1 with the list when something breaks.
+// Usage: node scripts/ui/fsd-lint.mjs [dir]   (default frontend/src; any folder inside src works too).
+// Sees `@/` aliases, relative paths and side-effect imports. Exit 1 with the list when something breaks.
 import { readFileSync, readdirSync, statSync } from 'node:fs'
-import { join, relative, sep } from 'node:path'
+import { dirname, join, relative, resolve, sep } from 'node:path'
 
 const LAYERS = ['shared', 'entities', 'features', 'widgets', 'pages', 'app']
-const root = process.argv[2] ?? 'frontend/src'
+const target = resolve(process.argv[2] ?? 'frontend/src')
 
 function* files(dir) {
+  if (statSync(dir).isFile()) return yield dir
   for (const name of readdirSync(dir)) {
     const path = join(dir, name)
     if (statSync(path).isDirectory()) yield* files(path)
@@ -18,27 +20,39 @@ function* files(dir) {
   }
 }
 
-const where = (parts) => ({ layer: parts[0], slice: LAYERS.includes(parts[0]) && parts[0] !== 'shared' && parts[0] !== 'app' ? parts[1] : undefined })
+/** The FSD position of an absolute path: the segment after `src`, else the first layer-named segment. */
+function locate(absolute) {
+  const parts = absolute.split(sep)
+  const src = parts.lastIndexOf('src')
+  let i = src >= 0 && LAYERS.includes(parts[src + 1]) ? src + 1 : parts.findIndex((p) => LAYERS.includes(p))
+  if (i < 0) return undefined
+  const layer = parts[i]
+  return { root: parts.slice(0, i).join(sep), layer, slice: layer === 'shared' || layer === 'app' ? undefined : parts[i + 1], rest: parts.slice(i) }
+}
+
+const IMPORT = /(?:import|export)\s+(?:type\s+)?(?:[^'"`;]*?\s+from\s+)?['"]([^'"]+)['"]|import\(\s*['"]([^'"]+)['"]\s*\)/g
 const problems = []
 
-for (const file of files(root)) {
-  const rel = relative(root, file).split(sep)
-  const from = where(rel)
-  if (!LAYERS.includes(from.layer)) continue
+for (const file of files(target)) {
+  const from = locate(file)
+  if (!from) continue
   const source = readFileSync(file, 'utf8')
-  for (const match of source.matchAll(/(?:import|export)[^'"`]*?from\s+['"]@\/([^'"]+)['"]|import\(\s*['"]@\/([^'"]+)['"]\s*\)/g)) {
-    const target = (match[1] ?? match[2]).split('/')
-    const to = where(target)
-    if (!LAYERS.includes(to.layer)) continue
+  for (const match of source.matchAll(IMPORT)) {
+    const spec = match[1] ?? match[2]
+    let to
+    if (spec.startsWith('@/')) to = locate(join(from.root, ...spec.slice(2).split('/')))
+    else if (spec.startsWith('.')) to = locate(resolve(dirname(file), spec))
+    if (!to || !LAYERS.includes(to.layer)) continue
     const line = source.slice(0, match.index).split('\n').length
     const at = `${relative(process.cwd(), file)}:${line}`
     const fromRank = LAYERS.indexOf(from.layer)
     const toRank = LAYERS.indexOf(to.layer)
-    if (toRank > fromRank) problems.push(`${at}  camada: ${from.layer} não importa de ${to.layer} (@/${target.join('/')})`)
+    const shown = `${to.rest.join('/')}`
+    if (toRank > fromRank) problems.push(`${at}  camada: ${from.layer} não importa de ${to.layer} (${shown})`)
     else if (toRank === fromRank && to.slice && to.slice !== from.slice)
       problems.push(`${at}  slice: ${from.layer}/${from.slice} não importa de ${to.layer}/${to.slice}`)
-    else if (to.slice && to.slice !== from.slice && target.length > 2)
-      problems.push(`${at}  API pública: use @/${to.layer}/${to.slice}, não @/${target.join('/')}`)
+    else if (to.slice && to.slice !== from.slice && to.rest.length > 2)
+      problems.push(`${at}  API pública: use @/${to.layer}/${to.slice}, não ${shown}`)
   }
 }
 
