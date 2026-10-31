@@ -32,6 +32,10 @@
 
   /* Rare emerald brand accent */
   --brand: oklch(0.62 0.13 163);
+  /* Terminal window dots (CheckoutDialog, OrderJsonPanel): same in both themes, like a real window (spec 006). */
+  --window-close: oklch(0.693 0.197 26.7);
+  --window-minimize: oklch(0.838 0.162 81.1);
+  --window-zoom: oklch(0.73 0.219 144.6);
 }
 
 .dark {
@@ -56,6 +60,10 @@
 
   /* Desaturated emerald — used sparingly */
   --brand: oklch(0.68 0.12 164);
+  /* Terminal window dots (CheckoutDialog, OrderJsonPanel): same in both themes, like a real window (spec 006). */
+  --window-close: oklch(0.693 0.197 26.7);
+  --window-minimize: oklch(0.838 0.162 81.1);
+  --window-zoom: oklch(0.73 0.219 144.6);
 }
 
 @theme inline {
@@ -86,6 +94,9 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-brand: var(--brand);
+  --color-window-close: var(--window-close);
+  --color-window-minimize: var(--window-minimize);
+  --color-window-zoom: var(--window-zoom);
 }
 
 @layer base {

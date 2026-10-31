@@ -36,3 +36,8 @@ test('003/CA-03, CA-01: o carrinho para em 20 unidades do mesmo prato e o pedido
 
   await sendCart(page, uniqueCustomer('limite'))
 })
+
+test('006/CA-01: a página se declara em português do Brasil', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.locator('html')).toHaveAttribute('lang', 'pt-BR')
+})
