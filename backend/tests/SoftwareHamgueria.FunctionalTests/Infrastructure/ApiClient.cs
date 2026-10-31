@@ -31,6 +31,16 @@ public sealed class ApiClient(HttpClient http, JsonSerializerOptions json)
 
     public Task<T?> ReadAsync<T>(HttpResponseMessage response) => response.Content.ReadFromJsonAsync<T>(json);
 
+    /// <summary>Reads an error body, asserting it is <c>application/problem+json</c> (ADR 0022).</summary>
+    public async Task<ProblemBody> ReadProblemAsync(HttpResponseMessage response)
+    {
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+        var problem = (await ReadAsync<ProblemBody>(response))!;
+        Assert.Equal((int)response.StatusCode, problem.Status);
+        Assert.False(string.IsNullOrEmpty(problem.TraceId));
+        return problem;
+    }
+
     // ---- auth
 
     public Task<HttpResponseMessage> LoginAsync(string username, string password) =>

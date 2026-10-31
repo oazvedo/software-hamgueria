@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using Microsoft.AspNetCore.Mvc;
+using SoftwareHamgueria.API.Errors;
 using SoftwareHamgueria.API.Filters;
 using SoftwareHamgueria.Application;
 using SoftwareHamgueria.Infrastructure;
@@ -10,8 +12,21 @@ using SoftwareHamgueria.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers()
-    .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
+builder.Services.AddControllers(o =>
+        // Required fields are checked by the FluentValidation validators, in Portuguese (ADR 0021).
+        o.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true)
+    .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()))
+    .ConfigureApiBehaviorOptions(o => o.InvalidModelStateResponseFactory = InvalidModelStateFactory.Create);
+
+// Every error is ProblemDetails with a Portuguese title and a traceId (ADR 0022).
+builder.Services.AddProblemDetails(o => o.CustomizeProblemDetails = ctx =>
+{
+    var problem = ctx.ProblemDetails;
+    if (problem.Type is null || !problem.Type.StartsWith("https://hamgueria.dev/"))
+        (problem.Type, problem.Title) = ProblemTypes.ForStatus(problem.Status ?? ctx.HttpContext.Response.StatusCode);
+    problem.Extensions["traceId"] = GlobalExceptionHandler.TraceId(ctx.HttpContext);
+});
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -61,6 +76,9 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
     DatabaseSeeder.Seed(db);
 }
+
+app.UseExceptionHandler();
+app.UseStatusCodePages();
 
 if (app.Environment.IsDevelopment())
 {

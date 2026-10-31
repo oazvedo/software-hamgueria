@@ -29,17 +29,14 @@ public class TableController(ITableService tableService) : ControllerBase
 
     [HttpPut("{id:guid}")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateTableDto dto)
-    {
-        try { return Ok(await tableService.UpdateAsync(id, dto)); }
-        catch (KeyNotFoundException) { return NotFound(); }
-    }
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateTableDto dto) =>
+        Ok(await tableService.UpdateAsync(id, dto));
 
     [HttpPatch("{id:guid}/disable")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Disable(Guid id)
     {
-        try { await tableService.DisableAsync(id); return NoContent(); }
-        catch (KeyNotFoundException) { return NotFound(); }
+        await tableService.DisableAsync(id);
+        return NoContent();
     }
 }

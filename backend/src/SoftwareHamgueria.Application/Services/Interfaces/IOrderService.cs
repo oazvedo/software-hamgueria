@@ -13,5 +13,5 @@ public interface IOrderService
     Task<IEnumerable<OrderResponseDto>> GetTableOrdersAsync(Guid tableId);
     Task CancelAsync(Guid id);
     Task UpdateStatusAsync(Guid id, OrderStatus status);
-    Task CloseComandaAsync(Guid tableId, string customerName);
+    Task CloseComandaAsync(CloseComandaDto dto);
 }

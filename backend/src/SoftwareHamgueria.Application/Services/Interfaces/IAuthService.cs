@@ -4,5 +4,5 @@ namespace SoftwareHamgueria.Application.Services.Interfaces;
 
 public interface IAuthService
 {
-    TokenResponseDto Login(LoginDto dto);
+    TokenResponseDto? Login(LoginDto dto);
 }

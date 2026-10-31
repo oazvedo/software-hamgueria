@@ -17,6 +17,7 @@ Para criar: skill `spec`. Para implementar: skill `implement-task`. Templates em
 |---|---|---|
 | 001 | [Linha de base: o que o Hamgueria já faz](001-linha-de-base/spec.md) | Concluída (retroativa) |
 | 002 | [Base de testes automatizados](002-base-de-testes/spec.md) | Concluída |
+| 003 | [Validação de entrada e erros padronizados](003-validacao-problemdetails/spec.md) | Concluída |
 
 ## Candidatos a spec
 Dívidas e ideias encontradas na adoção do fluxo (2026-10-31). Cada item vira uma spec, entra numa spec existente ou é
@@ -24,7 +25,6 @@ descartado. Ao aprovar uma spec que resolve um item, remova-o daqui.
 
 | Candidato | Por quê | ADR afetado |
 |---|---|---|
-| Validação + ProblemDetails + handler global de exceções | Sem validação de entrada (nome vazio, preço negativo, quantidade ≤ 0, pedido sem itens) e erros como texto simples com `try/catch` repetido nos controllers. | 0008 |
 | Unit of Work | Pedido gravado e evento publicado não são atômicos; operações compostas não têm transação. | 0006, 0010 |
 | Preço como `decimal` | `Dish.Price` é `double`: erros de arredondamento em dinheiro. | 0007 |
 | Segredos fora do `appsettings` | Senha do admin, segredo JWT e senha do Postgres versionados; fallback hardcoded no `AuthService`. | 0009 |

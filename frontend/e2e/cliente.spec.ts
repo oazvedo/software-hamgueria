@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { placeOrder, skipRealWithoutApi, uniqueCustomer } from './support'
+import { addFirstDish, placeOrder, sendCart, skipRealWithoutApi, uniqueCustomer } from './support'
 
 skipRealWithoutApi()
 
@@ -24,4 +24,15 @@ test('001/CA-07, CA-08, CA-13: cliente pede, vê comanda e mesa, fecha a comanda
   await expect(page.getByText('Fechada', { exact: true })).toBeHidden()
   await expect(page.getByRole('button', { name: 'Fechar comanda' })).toBeVisible()
   await expect(page.getByText('2 pedidos · total da comanda')).toBeVisible()
+})
+
+test('003/CA-03, CA-01: o carrinho para em 20 unidades do mesmo prato e o pedido no limite é aceito', async ({ page }) => {
+  await addFirstDish(page, 'Mesa 02')
+
+  const more = page.getByRole('button', { name: 'Aumentar' })
+  for (let i = 1; i < 20; i++) await more.click()
+  await expect(more).toBeDisabled()
+  await expect(page.getByText('"quantity": 20')).toBeVisible()
+
+  await sendCart(page, uniqueCustomer('limite'))
 })

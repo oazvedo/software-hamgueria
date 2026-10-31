@@ -1,4 +1,6 @@
+using FluentValidation;
 using SoftwareHamgueria.Application.DTOs.Order;
+using SoftwareHamgueria.Application.Exceptions;
 using SoftwareHamgueria.Application.Messaging;
 using SoftwareHamgueria.Application.Repositories;
 using SoftwareHamgueria.Application.Services.Interfaces;
@@ -11,25 +13,21 @@ public class OrderService(
     IDishRepository dishRepository,
     ITableRepository tableRepository,
     IComandaRepository comandaRepository,
-    IOrderEventPublisher publisher) : IOrderService
+    IOrderEventPublisher publisher,
+    IValidator<CreateOrderDto> createValidator,
+    IValidator<UpdateOrderDto> updateValidator,
+    IValidator<CloseComandaDto> closeValidator,
+    IValidator<ComandaQuery> comandaQueryValidator) : IOrderService
 {
     public async Task<OrderResponseDto> CreateAsync(CreateOrderDto dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.CustomerName))
-            throw new InvalidOperationException("Customer name (comanda) is required.");
+        await createValidator.ValidateAndThrowAsync(dto);
 
         _ = await tableRepository.GetByIdAsync(dto.TableId)
-            ?? throw new KeyNotFoundException($"Table {dto.TableId} not found.");
+            ?? throw new NotFoundException("A mesa informada não existe.");
 
         var order = new Order(dto.TableId, dto.CustomerName.Trim());
-
-        foreach (var item in dto.Items)
-        {
-            var dish = await dishRepository.GetByIdAsync(item.DishId)
-                ?? throw new KeyNotFoundException($"Dish {item.DishId} not found.");
-            if (!dish.IsActive) throw new InvalidOperationException($"Dish '{dish.Name}' is not active.");
-            order.AddItem(item.DishId, item.Quantity, item.Notes ?? string.Empty);
-        }
+        await AddItemsAsync(order, dto.Items);
 
         await orderRepository.AddAsync(order);
         var saved = await orderRepository.GetByIdAsync(order.Id);
@@ -40,17 +38,12 @@ public class OrderService(
 
     public async Task<OrderResponseDto> UpdateAsync(Guid id, UpdateOrderDto dto)
     {
-        var order = await orderRepository.GetByIdAsync(id)
-            ?? throw new KeyNotFoundException($"Order {id} not found.");
+        await updateValidator.ValidateAndThrowAsync(dto);
+
+        var order = await orderRepository.GetByIdAsync(id) ?? throw OrderNotFound();
 
         order.Items.Clear();
-        foreach (var item in dto.Items)
-        {
-            var dish = await dishRepository.GetByIdAsync(item.DishId)
-                ?? throw new KeyNotFoundException($"Dish {item.DishId} not found.");
-            if (!dish.IsActive) throw new InvalidOperationException($"Dish '{dish.Name}' is not active.");
-            order.AddItem(item.DishId, item.Quantity, item.Notes ?? string.Empty);
-        }
+        await AddItemsAsync(order, dto.Items);
 
         order.UpdateStatus(OrderStatus.Draft);
         await orderRepository.UpdateAsync(order);
@@ -76,6 +69,7 @@ public class OrderService(
 
     public async Task<IEnumerable<OrderResponseDto>> GetComandaAsync(Guid tableId, string customerName)
     {
+        await comandaQueryValidator.ValidateAndThrowAsync(new ComandaQuery(tableId, customerName));
         var orders = await orderRepository.GetByComandaAsync(tableId, customerName);
         var closure = await comandaRepository.GetAsync(tableId, customerName);
         return orders.Select(o => ToDto(o, IsClosed(o, closure?.ClosedAt)));
@@ -90,8 +84,7 @@ public class OrderService(
 
     public async Task CancelAsync(Guid id)
     {
-        var order = await orderRepository.GetByIdAsync(id)
-            ?? throw new KeyNotFoundException($"Order {id} not found.");
+        var order = await orderRepository.GetByIdAsync(id) ?? throw OrderNotFound();
         order.Cancel();
         await orderRepository.UpdateAsync(order);
         publisher.Publish("order.cancelled", order.Id.ToString());
@@ -99,18 +92,29 @@ public class OrderService(
 
     public async Task UpdateStatusAsync(Guid id, OrderStatus status)
     {
-        var order = await orderRepository.GetByIdAsync(id)
-            ?? throw new KeyNotFoundException($"Order {id} not found.");
+        var order = await orderRepository.GetByIdAsync(id) ?? throw OrderNotFound();
         order.UpdateStatus(status);
         await orderRepository.UpdateAsync(order);
     }
 
-    public async Task CloseComandaAsync(Guid tableId, string customerName)
+    public async Task CloseComandaAsync(CloseComandaDto dto)
     {
-        if (string.IsNullOrWhiteSpace(customerName))
-            throw new InvalidOperationException("Customer name (comanda) is required.");
-        await comandaRepository.UpsertAsync(tableId, customerName.Trim());
+        await closeValidator.ValidateAndThrowAsync(dto);
+        await comandaRepository.UpsertAsync(dto.TableId, dto.CustomerName.Trim());
     }
+
+    private async Task AddItemsAsync(Order order, IEnumerable<OrderItemDto> items)
+    {
+        foreach (var item in items)
+        {
+            var dish = await dishRepository.GetByIdAsync(item.DishId)
+                ?? throw new NotFoundException("O prato informado não existe.");
+            if (!dish.IsActive) throw new BusinessRuleException($"O prato {dish.Name} não está disponível.");
+            order.AddItem(item.DishId, item.Quantity, item.Notes ?? string.Empty);
+        }
+    }
+
+    private static NotFoundException OrderNotFound() => new("Pedido não encontrado.");
 
     private static Dictionary<(Guid, string), DateTime> BuildClosureMap(IEnumerable<ComandaClosure> closures)
     {

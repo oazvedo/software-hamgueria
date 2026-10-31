@@ -37,3 +37,5 @@ Formato MADR enxuto ([template.md](template.md)). Para criar um novo, use a skil
 | [0018](0018-fluxo-de-branches-e-conventional-commits.md) | Fluxo de branches (main + dev) e Conventional Commits | Aceito |
 | [0019](0019-git-hooks-versionados.md) | Git hooks versionados no repositório | Aceito |
 | [0020](0020-revisao-de-pr-com-claude.md) | Revisão de PR e @claude com o Claude Code Action | Aceito |
+| [0021](0021-validacao-de-entrada-com-fluentvalidation.md) | Validação de entrada com FluentValidation na Application | Aceito |
+| [0022](0022-erros-em-problemdetails-com-handler-global.md) | Erros da API em ProblemDetails com handler global | Aceito |
