@@ -161,6 +161,9 @@ function mockAuditEntries() {
 }
 
 export const handlers = [
+  // Browser telemetry (spec 023): the mock accepts and drops it.
+  http.post('/api/telemetry/client-error', () => new HttpResponse(null, { status: 204 })),
+  http.post('/api/telemetry/vitals', () => new HttpResponse(null, { status: 204 })),
   http.get('/api/audit', ({ request }) => {
     if (!isAuthed(request)) return problems.unauthorized()
     const url = new URL(request.url)
