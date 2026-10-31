@@ -33,7 +33,6 @@ function ActiveCard({ order }: { order: OrderResponse }) {
   )
 }
 
-
 function FinishedRow({ order }: { order: OrderResponse }) {
   return (
     <li className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card/60 px-4 py-2.5 text-sm">
@@ -49,9 +48,6 @@ function FinishedRow({ order }: { order: OrderResponse }) {
     </li>
   )
 }
-
-// ---- "Por mesa" grouped view ----
-
 
 /** Orders in progress, oldest first, and the ones finished in the last 24 h (spec 020), newest first. */
 export function KitchenQueue({ orders }: { orders: OrderResponse[] }) {

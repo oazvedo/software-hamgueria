@@ -4,6 +4,7 @@ import { useManageOrder } from '@/features/manage-order/model/useManageOrder'
 import { Button } from '@/shared/ui/shadcn'
 import { cn } from '@/shared/lib/cn'
 
+/** Finalizar / Cancelar for the kitchen, used by the queue and the per-table view. */
 export function OrderActions({ order, className }: { order: OrderResponse; className?: string }) {
   const { finish, cancel } = useManageOrder()
   const busy =

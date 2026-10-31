@@ -5,5 +5,3 @@ export function waitingLabel(iso: string): string {
   if (mins === 1) return 'há 1 min'
   return `há ${mins} min`
 }
-
-/** Finalizar / Cancelar buttons, reused across queue + table views. */

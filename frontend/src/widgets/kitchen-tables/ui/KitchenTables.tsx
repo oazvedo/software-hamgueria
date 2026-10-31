@@ -54,7 +54,6 @@ function groupByTable(orders: OrderResponse[]): TableGroup[] {
     .sort((a, b) => a.tableName.localeCompare(b.tableName))
 }
 
-
 function OrderRow({ order }: { order: OrderResponse }) {
   const active = !isTerminal(order.status)
   return (
@@ -84,7 +83,6 @@ function OrderRow({ order }: { order: OrderResponse }) {
     </div>
   )
 }
-
 
 function TableCard({ table }: { table: TableGroup }) {
   const close = useCloseComanda()
@@ -145,9 +143,6 @@ function TableCard({ table }: { table: TableGroup }) {
     </section>
   )
 }
-
-// ---- View toggle ----
-
 
 /** The kitchen's per-table view: each table, its comandas and their orders. */
 export function KitchenTables({ orders }: { orders: OrderResponse[] }) {
