@@ -72,3 +72,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
+
+// Exposes the entry point to WebApplicationFactory<Program> in the functional tests (ADR 0016).
+public partial class Program;

@@ -1,0 +1,84 @@
+# Claude Code no GitHub (ADR 0020).
+# - review: todo PR para dev/main recebe uma revisão contra os ADRs, o CLAUDE.md e a spec citada no PR.
+# - responder: um comentário com "@claude" em issue ou PR aciona o Claude para responder ou implementar.
+# Credencial: secret CLAUDE_CODE_OAUTH_TOKEN (gerado com `claude setup-token`). Sem ele, os jobs falham sem efeito.
+name: Claude
+
+on:
+  pull_request:
+    branches: [dev, main]
+    types: [opened, synchronize, ready_for_review, reopened]
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+
+jobs:
+  review:
+    # PR de fork não recebe secrets; rascunhos esperam ficar prontos.
+    if: >-
+      github.event_name == 'pull_request' &&
+      !github.event.pull_request.draft &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Only a newer push to the same PR cancels a review; comments (e.g. from bots) never do.
+    concurrency:
+      group: claude-review-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          use_sticky_comment: true
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR: ${{ github.event.pull_request.number }}
+
+            Revise este PR do Software Hamgueria. Escreva em português, direto, sem elogios.
+
+            1. Leia o CLAUDE.md e os ADRs em docs/adr/ (status Aceito são lei). Se a descrição do PR citar
+               docs/specs/NNN-nome, leia spec.md, plan.md e tasks.md dessa pasta.
+            2. Leia o diff (`gh pr diff`). Revise só o que o PR muda.
+            3. Aponte, nesta ordem de prioridade:
+               - violação de ADR ou do CLAUDE.md (cite o número do ADR);
+               - bug de correção (falha concreta: entrada → resultado errado), com arquivo:linha;
+               - critério de aceite (CA-xx) da spec sem teste que o cubra, ou teste sem cenário de falha (ADR 0016);
+               - endpoint novo sem handler MSW correspondente (ADR 0013); tela nova sem passar pelas regras da
+                 skill visant-killer (ADR 0015).
+            4. Use comentários inline (mcp__github_inline_comment__create_inline_comment) para achados com linha, e
+               um resumo final com o veredito: "Pode integrar", "Integrar com ressalvas" ou "Precisa de ajuste".
+            Não comente estilo que o lint já cobre. Se não houver achados, diga isso em uma linha.
+          claude_args: >-
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Read,Glob,Grep"
+
+  responder:
+    # Só quem tem acesso de escrita aciona (a action confere a permissão de quem comentou).
+    if: >-
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          base_branch: dev
+          branch_prefix: chore/claude-
