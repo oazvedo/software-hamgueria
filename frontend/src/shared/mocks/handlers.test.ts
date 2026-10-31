@@ -20,3 +20,33 @@ describe('handlers MSW', () => {
     })
   })
 })
+
+describe('020: lista da cozinha limitada no modo simulado', () => {
+  it('020/CA-02: finalizado há mais de 24 h some; em andamento antigo continua', async () => {
+    const old = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
+    const order = (id: string, status: string) => ({
+      id, tableId: 't1', tableName: 'Mesa 01', customerName: id, items: [], status, createdAt: old, updatedAt: old,
+    })
+    localStorage.setItem('hamgueria-mock-orders', JSON.stringify([order('ativo-velho', 'Created'), order('servido-velho', 'Done')]))
+
+    const response = await fetch(new URL('/api/order', location.origin), { headers: { Authorization: 'Bearer mock-kitchen-jwt' } })
+    const ids = ((await response.json()) as Array<{ id: string }>).map((o) => o.id)
+
+    expect(ids).toEqual(['ativo-velho'])
+  })
+
+  it('020/CA-03: com mais de 500 em andamento, volta exatamente os 500 mais recentes', async () => {
+    const order = (i: number) => {
+      const at = new Date(Date.now() - i * 60_000).toISOString()
+      return { id: `lote-${i}`, tableId: 't1', tableName: 'Mesa 01', customerName: `Lote ${i}`, items: [], status: 'Created', createdAt: at, updatedAt: at }
+    }
+    localStorage.setItem('hamgueria-mock-orders', JSON.stringify(Array.from({ length: 520 }, (_, i) => order(i + 1))))
+
+    const response = await fetch(new URL('/api/order', location.origin), { headers: { Authorization: 'Bearer mock-kitchen-jwt' } })
+    const ids = ((await response.json()) as Array<{ id: string }>).map((o) => o.id)
+
+    expect(ids).toHaveLength(500)
+    expect(ids[0]).toBe('lote-1')
+    expect(ids).not.toContain('lote-501')
+  })
+})
