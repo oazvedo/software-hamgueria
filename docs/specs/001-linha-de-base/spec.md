@@ -75,7 +75,7 @@ E = ponta a ponta (`npm run e2e`, também no modo real).
 | CA-09 | S: `AuthEndpointsTests` · E: `cozinha.spec.ts` |
 | CA-10 | S: `AuthEndpointsTests` · E: `cozinha.spec.ts` |
 | CA-11 | S: `AuthEndpointsTests` · E: `cozinha.spec.ts` |
-| CA-12 ⚠️ | Sem checagem: comportamento a corrigir (cancelamento sem verificar o dono) |
+| CA-12 ⚠️ | Corrigido na spec 012: só o dono (token) ou a cozinha cancela. S: `OrderOwnershipTests` |
 | CA-13 | E: `cliente.spec.ts` (o nome cita CA-13); toda a suíte e2e roda no projeto `mock`, sem backend |
 
 ## Fora de escopo

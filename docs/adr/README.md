@@ -46,3 +46,4 @@ Formato MADR enxuto ([template.md](template.md)). Para criar um novo, use a skil
 | [0027](0027-auditoria-por-triggers-no-postgres.md) | Auditoria do banco por triggers no PostgreSQL, com autor e origem | Aceito |
 | [0028](0028-observabilidade-com-opentelemetry.md) | Observabilidade com OpenTelemetry e Aspire Dashboard | Aceito |
 | [0029](0029-fila-de-jobs-com-hangfire.md) | Fila de jobs com Hangfire no Postgres | Aceito |
+| [0030](0030-dono-do-pedido-por-token.md) | Dono do pedido por token e status com transições fechadas | Aceito |
