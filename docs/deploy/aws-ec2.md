@@ -106,6 +106,16 @@ Se a API reiniciar com a fila fora, os eventos esperando se perdem (o log da `ap
 Os logs giram em 3 arquivos de 10 MB por serviço. Um erro 500 mostra um `traceId` ao cliente. Procure por ele no log
 da `api` (ADR 0022).
 
+## 9. Telemetria (opcional)
+O painel de traces, métricas e logs (ADR 0028) sobe com o perfil `observability`:
+```bash
+# no .env: OTEL_EXPORTER_OTLP_ENDPOINT=http://aspire-dashboard:18889
+docker compose -f docker-compose.prod.yml --profile observability up -d
+docker compose -f docker-compose.prod.yml logs aspire-dashboard | grep -i token   # token de login
+ssh -i sua-chave.pem -L 18888:localhost:18888 ubuntu@<elastic-ip>               # e abra http://localhost:18888
+```
+Ele guarda tudo em memória: reiniciar apaga o histórico. Os logs da API saem em JSON no `docker compose logs`.
+
 ## Antes do primeiro deploy, teste local
 Da raiz do repositório, `sh scripts/deploy/smoke.sh` sobe a mesma pilha na porta 8088 com segredos descartáveis,
 confere tela, API, saúde, portas fechadas, `/swagger` 404 e persistência após reinício, e derruba tudo.

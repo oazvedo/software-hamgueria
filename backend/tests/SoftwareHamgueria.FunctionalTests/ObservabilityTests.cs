@@ -44,10 +44,12 @@ public class ObservabilityTests(HamgueriaApiFactory factory)
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         // The server span stops after the response reaches the client: wait for it instead of racing.
-        await BrokerApiFactory.Eventually(() => Task.FromResult(spans.Any(a => a.Kind == ActivityKind.Server)),
+        // Other tests run in parallel and feed the same listener: wait for this route's own server span.
+        bool IsOurs(Activity a) => a.Kind == ActivityKind.Server && a.GetTagItem("http.route") is "api/Dish";
+        await BrokerApiFactory.Eventually(() => Task.FromResult(spans.Any(IsOurs)),
             TimeSpan.FromSeconds(5), "o span do servidor devia terminar");
         var seen = string.Join(" | ", spans.Select(a => $"{a.Source.Name}/{a.Kind}/{a.DisplayName}/{a.GetTagItem("http.route")}"));
-        var server = spans.LastOrDefault(a => a.Kind == ActivityKind.Server && a.GetTagItem("http.route") is "api/Dish");
+        var server = spans.LastOrDefault(IsOurs);
         Assert.True(server is not null, seen);
         Assert.Contains(spans, a => a.Source.Name == "Npgsql" && a.TraceId == server.TraceId);
     }
