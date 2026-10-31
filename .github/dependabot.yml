@@ -1,0 +1,29 @@
+# Weekly update PRs (spec 024): with images pinned by digest and exact package versions, nothing moves by itself;
+# Dependabot proposes the bumps and the CI (tests, gate, vulnerability checks, image build) judges each one.
+version: 2
+updates:
+  - package-ecosystem: docker
+    directories: [/backend, /frontend]
+    schedule: { interval: weekly }
+    target-branch: dev
+  - package-ecosystem: docker-compose
+    directories: [/, /backend]
+    schedule: { interval: weekly }
+    target-branch: dev
+  - package-ecosystem: nuget
+    directory: /backend
+    schedule: { interval: weekly }
+    target-branch: dev
+    groups:
+      microsoft: { patterns: ["Microsoft.*", "System.*"] }
+      opentelemetry: { patterns: ["OpenTelemetry*", "Npgsql.OpenTelemetry"] }
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule: { interval: weekly }
+    target-branch: dev
+    groups:
+      minor-and-patch: { update-types: [minor, patch] }
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }
+    target-branch: dev

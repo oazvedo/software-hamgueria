@@ -85,7 +85,6 @@ namespace SoftwareHamgueria.Infrastructure.Migrations
             modelBuilder.Entity("SoftwareHamgueria.Domain.Entities.ComandaClosure", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("ClosedAt")
@@ -110,7 +109,6 @@ namespace SoftwareHamgueria.Infrastructure.Migrations
             modelBuilder.Entity("SoftwareHamgueria.Domain.Entities.Dish", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<int>("Category")
@@ -149,7 +147,6 @@ namespace SoftwareHamgueria.Infrastructure.Migrations
             modelBuilder.Entity("SoftwareHamgueria.Domain.Entities.Order", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
@@ -246,7 +243,6 @@ namespace SoftwareHamgueria.Infrastructure.Migrations
             modelBuilder.Entity("SoftwareHamgueria.Domain.Entities.Table", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")

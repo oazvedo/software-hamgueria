@@ -35,9 +35,9 @@ public class DishService(
         return dish is null ? null : ToDto(dish);
     }
 
-    public async Task<IEnumerable<DishResponseDto>> GetAllAsync()
+    public async Task<IEnumerable<DishResponseDto>> GetAllAsync(bool onlyActive = false)
     {
-        var dishes = await repository.GetAllAsync();
+        var dishes = await repository.GetAllAsync(onlyActive);
         return dishes.Select(ToDto);
     }
 
