@@ -1,16 +1,23 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using SoftwareHamgueria.Application.Messaging;
+using SoftwareHamgueria.Infrastructure.Data;
 
 namespace SoftwareHamgueria.Infrastructure.Messaging;
 
-/// <summary>Queue state for <c>/api/health/details</c> (spec 005): connected or not, plus the events waiting.</summary>
-public sealed class RabbitMqHealthCheck(RabbitMqEventDispatcher dispatcher, PendingOrderEvents pending) : IHealthCheck
+/// <summary>
+/// Queue state for <c>/api/health/details</c> (spec 005): connected or not, plus the outbox messages still unsent,
+/// counted live from the table (ADR 0031) so the number is right the moment an order is written.
+/// </summary>
+public sealed class RabbitMqHealthCheck(RabbitMqEventDispatcher dispatcher, AppDbContext db) : IHealthCheck
 {
-    public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
+    public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
-        var data = new Dictionary<string, object> { ["pendingEvents"] = pending.Count };
-        return Task.FromResult(dispatcher.IsConnected
+        int pending;
+        try { pending = await db.OutboxMessages.CountAsync(m => m.SentAt == null, cancellationToken); }
+        catch (Exception) { pending = dispatcher.PendingCount; } // database down: the database check already says so
+        var data = new Dictionary<string, object> { ["pendingEvents"] = pending };
+        return dispatcher.IsConnected
             ? HealthCheckResult.Healthy(data: data)
-            : new HealthCheckResult(context.Registration.FailureStatus, data: data));
+            : new HealthCheckResult(context.Registration.FailureStatus, data: data);
     }
 }

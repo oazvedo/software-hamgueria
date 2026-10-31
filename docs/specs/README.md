@@ -68,7 +68,6 @@ descartado. Ao aprovar uma spec que resolve um item, remova-o daqui.
 
 | Candidato | Por quê | ADR afetado |
 |---|---|---|
-| Unit of Work | Pedido gravado e evento publicado não são atômicos; operações compostas não têm transação. | 0006, 0010 |
 | Preço como `decimal` | `Dish.Price` é `double`: erros de arredondamento em dinheiro. | 0007 |
 | Lint das fronteiras do FSD | A regra de imports do FSD não é verificada automaticamente. | 0011 |
 | Paginação em `GET /api/order` | A lista da cozinha cresce sem limite. | 0006 |

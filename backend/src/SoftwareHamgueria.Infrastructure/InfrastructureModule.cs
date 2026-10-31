@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using SoftwareHamgueria.Application.Audit;
+using SoftwareHamgueria.Application.Messaging;
 using SoftwareHamgueria.Infrastructure.Audit;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using SoftwareHamgueria.Application.Repositories;
@@ -30,6 +31,8 @@ public static class InfrastructureModule
                 .AddInterceptors(new AuditContextInterceptor(sp.GetRequiredService<IAuditContext>())));
 
         // /api/health looks only at "db"; /api/health/details shows both (spec 005).
+        // Transactional outbox (ADR 0031): events are staged in the request's DbContext and sent in the background.
+        services.AddScoped<IOrderEventPublisher, OutboxOrderEventPublisher>();
         services.AddSingleton<RabbitMqEventDispatcher>();
         services.AddHostedService(sp => sp.GetRequiredService<RabbitMqEventDispatcher>());
         services.AddHealthChecks()

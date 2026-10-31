@@ -50,6 +50,8 @@ public sealed class BrokerApiFactory : WebApplicationFactory<Program>
         return factory;
     }
 
+    public string PostgresConnectionString => _postgres.GetConnectionString();
+
     public Task StopBrokerAsync() => _broker.StopAsync();
 
     public Task StartBrokerAsync() => _broker.StartAsync();
@@ -101,6 +103,7 @@ public sealed class BrokerApiFactory : WebApplicationFactory<Program>
         builder.UseSetting("RabbitMq:Password", Password);
         builder.UseSetting("RabbitMq:RetryDelaySeconds", "1");
         builder.UseSetting("RabbitMq:PublishTimeoutSeconds", "2");
+        builder.UseSetting("Outbox:PollSeconds", "0.2");
     }
 
     public override async ValueTask DisposeAsync()

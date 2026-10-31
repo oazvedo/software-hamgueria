@@ -1,32 +1,54 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
-using SoftwareHamgueria.Application.Messaging;
 using SoftwareHamgueria.Application.Telemetry;
+using SoftwareHamgueria.Domain.Entities;
+using SoftwareHamgueria.Infrastructure.Data;
 
 namespace SoftwareHamgueria.Infrastructure.Messaging;
 
 /// <summary>
-/// Sends the pending order events to RabbitMQ in the background (ADR 0025). Keeps a connection open, reconnecting
-/// every <c>RabbitMq:RetryDelaySeconds</c> while the broker is down, and removes an event only after the broker
-/// confirms it. Requests never wait for, or fail because of, the broker.
+/// Sends the outbox to RabbitMQ in the background (ADR 0031). Reads unsent messages oldest first, in batches locked with
+/// <c>FOR UPDATE SKIP LOCKED</c> (two API instances never send the same row), publishes with confirms and marks each
+/// one sent. With the broker down, messages simply stay in the table, across restarts, until it comes back.
 /// </summary>
-public sealed class RabbitMqEventDispatcher(
-    PendingOrderEvents pending,
-    IConfiguration configuration,
-    ILogger<RabbitMqEventDispatcher> logger) : BackgroundService
+public sealed class RabbitMqEventDispatcher : BackgroundService
 {
     public const string ExchangeName = "hamgueria.orders";
+    private const int BatchSize = 50;
 
-    private readonly TimeSpan _retryDelay = Seconds("RabbitMq:RetryDelaySeconds", configuration);
-    private readonly TimeSpan _publishTimeout = Seconds("RabbitMq:PublishTimeoutSeconds", configuration);
+    private readonly IServiceScopeFactory _scopes;
+    private readonly IConfiguration _configuration;
+    private readonly ILogger<RabbitMqEventDispatcher> _logger;
+    private readonly TimeSpan _retryDelay;
+    private readonly TimeSpan _publishTimeout;
+    private readonly TimeSpan _pollInterval;
+    private readonly Func<int> _readPending; // kept alive here: the telemetry gauge holds it only weakly
     private IConnection? _connection;
     private IChannel? _channel;
     private bool _outageLogged;
+    private volatile int _pending;
+
+    public RabbitMqEventDispatcher(IServiceScopeFactory scopes, IConfiguration configuration, ILogger<RabbitMqEventDispatcher> logger)
+    {
+        _scopes = scopes;
+        _configuration = configuration;
+        _logger = logger;
+        _retryDelay = Seconds("RabbitMq:RetryDelaySeconds", 5);
+        _publishTimeout = Seconds("RabbitMq:PublishTimeoutSeconds", 5);
+        _pollInterval = Seconds("Outbox:PollSeconds", 0.5);
+        _readPending = () => _pending;
+        HamgueriaTelemetry.TrackPendingEvents(_readPending);
+    }
 
     public bool IsConnected => _connection?.IsOpen == true && _channel?.IsOpen == true;
+
+    /// <summary>Unsent outbox messages at the last look (for the health details and the gauge).</summary>
+    public int PendingCount => _pending;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -34,9 +56,10 @@ public sealed class RabbitMqEventDispatcher(
         {
             try
             {
+                await RefreshPendingAsync(stoppingToken);
                 if (!IsConnected) await ConnectAsync(stoppingToken);
-                await DrainAsync(stoppingToken);
-                await WaitForEventsOrRetryDelayAsync(stoppingToken);
+                var handled = await SendBatchAsync(stoppingToken);
+                if (handled == 0) await Task.Delay(_pollInterval, stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -46,7 +69,7 @@ public sealed class RabbitMqEventDispatcher(
             {
                 if (!_outageLogged)
                 {
-                    logger.LogWarning(ex, "RabbitMQ unavailable; order events wait in memory ({Pending} pending)", pending.Count);
+                    _logger.LogWarning(ex, "Order events not sent; they wait in the outbox ({Pending} pending)", _pending);
                     _outageLogged = true;
                 }
                 await DisconnectAsync();
@@ -59,19 +82,92 @@ public sealed class RabbitMqEventDispatcher(
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
         await base.StopAsync(cancellationToken);
-        if (pending.Count > 0)
-            logger.LogWarning("Shutting down with {Pending} order events not sent; they are lost", pending.Count);
         await DisconnectAsync();
+    }
+
+    private async Task RefreshPendingAsync(CancellationToken ct)
+    {
+        await using var scope = _scopes.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        _pending = await db.OutboxMessages.CountAsync(m => m.SentAt == null, ct);
+    }
+
+    /// <summary>Sends one locked batch; progress is saved even if the broker drops mid-batch. Returns rows handled.</summary>
+    private async Task<int> SendBatchAsync(CancellationToken ct)
+    {
+        await using var scope = _scopes.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        var batch = await db.OutboxMessages
+            .FromSqlRaw($"""
+                SELECT * FROM "OutboxMessages" WHERE "SentAt" IS NULL
+                ORDER BY "CreatedAt", "Id" LIMIT {BatchSize} FOR UPDATE SKIP LOCKED
+                """)
+            .ToListAsync(ct);
+
+        var handled = 0;
+        try
+        {
+            foreach (var message in batch)
+            {
+                await PublishAsync(message, ct);
+                handled++;
+            }
+        }
+        finally
+        {
+            // Whatever was confirmed (or refused for good) is recorded, even when the batch stops halfway.
+            await db.SaveChangesAsync(CancellationToken.None);
+            await transaction.CommitAsync(CancellationToken.None);
+            _pending = Math.Max(0, _pending - handled);
+        }
+        return handled;
+    }
+
+    private async Task PublishAsync(OutboxMessage message, CancellationToken ct)
+    {
+        using var activity = HamgueriaTelemetry.Source.StartActivity("publish order event", System.Diagnostics.ActivityKind.Producer);
+        activity?.SetTag("messaging.system", "rabbitmq");
+        activity?.SetTag("messaging.destination.name", ExchangeName);
+        activity?.SetTag("messaging.rabbitmq.destination.routing_key", message.RoutingKey);
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        timeout.CancelAfter(_publishTimeout);
+        try
+        {
+            await _channel!.BasicPublishAsync(
+                ExchangeName, message.RoutingKey, mandatory: false,
+                new BasicProperties { Persistent = true, MessageId = message.Id.ToString() },
+                System.Text.Encoding.UTF8.GetBytes(message.Payload), timeout.Token);
+            message.MarkSent();
+            HamgueriaTelemetry.OrderEventsPublished.Add(1);
+        }
+        catch (PublishException ex)
+        {
+            // Refused for good (nack): keep the row for inspection but stop retrying it, or it blocks the rest.
+            activity?.SetStatus(System.Diagnostics.ActivityStatusCode.Error, "nack");
+            message.MarkFailed("nack: " + ex.Message);
+            message.MarkSent();
+            HamgueriaTelemetry.OrderEventsDropped.Add(1, new KeyValuePair<string, object?>("reason", "nack"));
+            _logger.LogError(ex, "RabbitMQ refused {RoutingKey} for order {OrderId}; outbox row {Id} kept as failed",
+                message.RoutingKey, message.Payload, message.Id);
+        }
+        catch (Exception ex)
+        {
+            // Connection lost or timeout: the row stays unsent and the loop reconnects; the span says it failed.
+            activity?.SetStatus(System.Diagnostics.ActivityStatusCode.Error, ex.GetType().Name);
+            message.MarkFailed(ex.GetType().Name);
+            throw;
+        }
     }
 
     private async Task ConnectAsync(CancellationToken ct)
     {
         var factory = new ConnectionFactory
         {
-            HostName = configuration["RabbitMq:Host"] ?? "localhost",
-            Port = int.Parse(configuration["RabbitMq:Port"] ?? "5672"),
-            UserName = configuration["RabbitMq:Username"] ?? "guest",
-            Password = configuration["RabbitMq:Password"] ?? "guest",
+            HostName = _configuration["RabbitMq:Host"] ?? "localhost",
+            Port = int.Parse(_configuration["RabbitMq:Port"] ?? "5672"),
+            UserName = _configuration["RabbitMq:Username"] ?? "guest",
+            Password = _configuration["RabbitMq:Password"] ?? "guest",
             // This loop owns reconnection; the client's own recovery would hide the outage from IsConnected.
             AutomaticRecoveryEnabled = false,
             TopologyRecoveryEnabled = false,
@@ -82,54 +178,8 @@ public sealed class RabbitMqEventDispatcher(
             new CreateChannelOptions(publisherConfirmationsEnabled: true, publisherConfirmationTrackingEnabled: true), ct);
         await _channel.ExchangeDeclareAsync(ExchangeName, ExchangeType.Topic, durable: true, cancellationToken: ct);
 
-        logger.LogInformation("RabbitMQ connected to exchange '{Exchange}' ({Pending} events pending)", ExchangeName, pending.Count);
+        _logger.LogInformation("RabbitMQ connected to exchange '{Exchange}' ({Pending} events pending)", ExchangeName, _pending);
         _outageLogged = false;
-    }
-
-    private async Task DrainAsync(CancellationToken ct)
-    {
-        while (pending.TryPeek(out var orderEvent))
-        {
-            using var activity = HamgueriaTelemetry.Source.StartActivity("publish order event", System.Diagnostics.ActivityKind.Producer);
-            activity?.SetTag("messaging.system", "rabbitmq");
-            activity?.SetTag("messaging.destination.name", ExchangeName);
-            activity?.SetTag("messaging.rabbitmq.destination.routing_key", orderEvent!.RoutingKey);
-            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
-            timeout.CancelAfter(_publishTimeout);
-            try
-            {
-                await _channel!.BasicPublishAsync(
-                    ExchangeName, orderEvent!.RoutingKey, mandatory: false,
-                    new BasicProperties { Persistent = true }, System.Text.Encoding.UTF8.GetBytes(orderEvent.Message),
-                    timeout.Token);
-                HamgueriaTelemetry.OrderEventsPublished.Add(1);
-            }
-            catch (Exception ex) when (ex is not PublishException)
-            {
-                // Connection lost or timeout: the event stays queued and the loop reconnects; the span says it failed.
-                activity?.SetStatus(System.Diagnostics.ActivityStatusCode.Error, ex.GetType().Name);
-                throw;
-            }
-            catch (PublishException ex)
-            {
-                // The broker refused this event for good (nack): retrying would block every event behind it.
-                activity?.SetStatus(System.Diagnostics.ActivityStatusCode.Error, "nack");
-                HamgueriaTelemetry.OrderEventsDropped.Add(1, new KeyValuePair<string, object?>("reason", "nack"));
-                logger.LogError(ex, "RabbitMQ refused {RoutingKey} for order {OrderId}; event dropped",
-                    orderEvent!.RoutingKey, orderEvent.Message);
-            }
-
-            pending.RemoveHead(orderEvent!);
-        }
-    }
-
-    /// <summary>Returns when events arrive, or after the retry delay so a lost connection is noticed while idle.</summary>
-    private async Task WaitForEventsOrRetryDelayAsync(CancellationToken ct)
-    {
-        using var idle = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        idle.CancelAfter(_retryDelay);
-        try { await pending.WaitForEventsAsync(idle.Token); }
-        catch (OperationCanceledException) when (!ct.IsCancellationRequested) { }
     }
 
     private async Task DisconnectAsync()
@@ -142,6 +192,6 @@ public sealed class RabbitMqEventDispatcher(
         try { if (connection is not null) await connection.DisposeAsync(); } catch { /* already broken */ }
     }
 
-    private static TimeSpan Seconds(string key, IConfiguration configuration) =>
-        TimeSpan.FromSeconds(double.TryParse(configuration[key], out var s) && s > 0 ? s : 5);
+    private TimeSpan Seconds(string key, double fallback) =>
+        TimeSpan.FromSeconds(double.TryParse(_configuration[key], System.Globalization.CultureInfo.InvariantCulture, out var s) && s > 0 ? s : fallback);
 }

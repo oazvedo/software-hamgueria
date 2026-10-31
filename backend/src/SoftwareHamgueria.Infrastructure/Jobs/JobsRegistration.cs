@@ -23,6 +23,7 @@ public static class JobsRegistration
                 o => o.UseNpgsqlConnection(sp.GetRequiredService<IConfiguration>().GetConnectionString("Postgres")),
                 new PostgreSqlStorageOptions { SchemaName = "hangfire", PrepareSchemaIfNecessary = true }));
         services.AddHangfireServer(o => o.WorkerCount = 2);
+        services.AddScoped<OutboxRetentionJob>();
         services.AddHostedService<RecurringJobs>();
         return services;
     }
@@ -35,6 +36,8 @@ public sealed class RecurringJobs(IRecurringJobManager jobs) : IHostedService
     {
         jobs.AddOrUpdate<AuditRetentionJob>(
             AuditRetentionJob.Id, job => job.RunAsync(), Cron.Daily(3), new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
+        jobs.AddOrUpdate<OutboxRetentionJob>(
+            OutboxRetentionJob.Id, job => job.RunAsync(), Cron.Daily(3, 30), new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
         return Task.CompletedTask;
     }
 

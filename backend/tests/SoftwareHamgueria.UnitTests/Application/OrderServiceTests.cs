@@ -47,17 +47,18 @@ public class OrderServiceTests
     }
 
     [Fact(DisplayName = "001/CA-03: pedido válido é gravado como recebido e publica order.created depois de gravar")]
-    public async Task CreateAsync_ValidRequest_SavesThenPublishes()
+    public async Task CreateAsync_ValidRequest_StagesEventThenSaves()
     {
         var result = await _sut.CreateAsync(Request());
 
         Assert.Equal(OrderStatus.Created, result.Status);
         Assert.Equal("Ana", result.CustomerName);
         Assert.False(result.ComandaClosed);
+        // Outbox (ADR 0031): the event is staged before the write that commits both.
         Received.InOrder(() =>
         {
-            _orders.AddAsync(Arg.Any<Order>());
             _publisher.Publish("order.created", result.Id.ToString());
+            _orders.AddAsync(Arg.Any<Order>());
         });
     }
 

@@ -1,6 +1,5 @@
 using System.Text.Json;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using SoftwareHamgueria.Application.Messaging;
 
 namespace SoftwareHamgueria.API.Health;
 
@@ -17,7 +16,7 @@ public static class HealthResponseWriter
             status = report.Status.ToString(),
             database = State(report, "database"),
             queue = State(report, "queue"),
-            pendingEvents = context.RequestServices.GetRequiredService<PendingOrderEvents>().Count,
+            pendingEvents = report.Entries.TryGetValue("queue", out var queue) && queue.Data.TryGetValue("pendingEvents", out var n) ? n : 0,
         };
         context.Response.ContentType = "application/json";
         return context.Response.WriteAsync(JsonSerializer.Serialize(body));
