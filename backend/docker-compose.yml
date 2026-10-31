@@ -38,7 +38,7 @@ services:
 
   # Traces, metrics and logs of the API (ADR 0028): UI at http://localhost:18888, OTLP gRPC on 4317.
   aspire-dashboard:
-    image: mcr.microsoft.com/dotnet/aspire-dashboard:9.5@sha256:f287c6954596315ada6fb45af6ed2e451c45658aeb68d98dc1cfed5b5b253895
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:13.6@sha256:e4220c55fa3c3e40ad2d733ef07973392299b420e9bde6924e8f6a1e71ff01a8
     container_name: hamgueria-aspire-dashboard
     environment:
       DASHBOARD__FRONTEND__AUTHMODE: Unsecured   # local only; production keeps the browser token
