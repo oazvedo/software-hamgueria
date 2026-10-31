@@ -13,10 +13,12 @@ public class AuthService(IConfiguration configuration) : IAuthService
     /// <returns>The token, or <c>null</c> when the credentials are wrong.</returns>
     public TokenResponseDto? Login(LoginDto dto)
     {
-        var adminUser = configuration["Auth:AdminUsername"] ?? "admin";
-        var adminPassword = configuration["Auth:AdminPassword"] ?? "admin123";
+        // No built-in fallback (ADR 0024): without configured credentials, nobody gets in.
+        var adminUser = configuration["Auth:AdminUsername"];
+        var adminPassword = configuration["Auth:AdminPassword"];
 
-        if (dto.Username != adminUser || dto.Password != adminPassword)
+        if (string.IsNullOrEmpty(adminUser) || string.IsNullOrEmpty(adminPassword)
+            || dto.Username != adminUser || dto.Password != adminPassword)
             return null;
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Auth:JwtSecret"]!));

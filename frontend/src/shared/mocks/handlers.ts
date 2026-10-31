@@ -111,6 +111,8 @@ function echoTable(id: string, body: { tableName?: string }) {
 }
 
 export const handlers = [
+  // Same contract as the API's health probe (spec 004): plain text, no details.
+  http.get('/api/health', () => HttpResponse.text('Healthy')),
   http.get('/api/dish', () => HttpResponse.json(mockDishes)),
   http.get('/api/table', () => HttpResponse.json(mockTables)),
 

@@ -1,19 +1,20 @@
-version: "3.9"
-
+# Desenvolvimento local: só Postgres e RabbitMQ (a API roda com `dotnet run`, a tela com o Vite).
+# Portas fora do padrão para não colidir com outras instalações (spec 004). Valores em backend/.env
+# (copie de .env.example); sem o .env, valem os padrões abaixo. Produção: docker-compose.prod.yml na raiz.
 services:
   postgres:
     image: postgres:16-alpine
     container_name: hamgueria-postgres
     environment:
       POSTGRES_DB: hamgueria
-      POSTGRES_USER: hamgueria
-      POSTGRES_PASSWORD: hamgueria123
+      POSTGRES_USER: ${POSTGRES_USER:-hamgueria}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hamgueria123}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5433}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U hamgueria"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hamgueria}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -22,11 +23,11 @@ services:
     image: rabbitmq:3.13-management-alpine
     container_name: hamgueria-rabbitmq
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "${RABBITMQ_PORT:-5673}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT:-15673}:15672"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:

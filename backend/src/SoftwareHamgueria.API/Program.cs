@@ -7,10 +7,19 @@ using Microsoft.AspNetCore.Mvc;
 using SoftwareHamgueria.API.Errors;
 using SoftwareHamgueria.API.Filters;
 using SoftwareHamgueria.Application;
+using SoftwareHamgueria.Application.Configuration;
 using SoftwareHamgueria.Infrastructure;
 using SoftwareHamgueria.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Outside Development, refuse to start without strong secrets, before anything touches the database (ADR 0024).
+if (!builder.Environment.IsDevelopment())
+{
+    var problems = RequiredSettings.Check(builder.Configuration);
+    if (problems.Count > 0)
+        throw new InvalidOperationException("Configuração de produção inválida: " + string.Join(" ", problems));
+}
 
 builder.Services.AddControllers(o =>
         // Required fields are checked by the FluentValidation validators, in Portuguese (ADR 0021).
@@ -89,6 +98,8 @@ if (app.Environment.IsDevelopment())
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+// Infrastructure probe for compose and Caddy (ADR 0023): "Healthy" 200 or "Unhealthy" 503, no details.
+app.MapHealthChecks("/api/health");
 app.Run();
 
 // Exposes the entry point to WebApplicationFactory<Program> in the functional tests (ADR 0016).
