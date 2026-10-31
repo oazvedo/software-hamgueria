@@ -7,4 +7,16 @@ describe('handlers MSW', () => {
     expect(response.status).toBe(200)
     expect(await response.text()).toBe('Healthy')
   })
+
+  it('005/CA-07: a saúde detalhada simulada tem o mesmo formato da API', async () => {
+    const response = await fetch(new URL('/api/health/details', location.origin))
+
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual({
+      status: 'Healthy',
+      database: 'Healthy',
+      queue: 'Healthy',
+      pendingEvents: 0,
+    })
+  })
 })
