@@ -3,6 +3,7 @@ import { Check, ChefHat, Lock, LogOut, X } from 'lucide-react'
 import { LoginForm, useAuthStore } from '@/features/auth'
 import { useManageOrder } from '@/features/manage-order'
 import { useCloseComanda } from '@/features/close-comanda'
+import { AuditLog } from '@/widgets/audit-log'
 import { ItemNote, StatusBadge, isComandaClosed, isTerminal, orderTotal, useAllOrders } from '@/entities/order'
 import type { OrderResponse } from '@/entities/order'
 import { DataText } from '@/shared/ui/atoms'
@@ -245,7 +246,7 @@ function TableCard({ table }: { table: TableGroup }) {
 
 // ---- View toggle ----
 
-type ViewMode = 'fila' | 'mesas'
+type ViewMode = 'fila' | 'mesas' | 'historico'
 
 function ViewToggle({ value, onChange }: { value: ViewMode; onChange: (v: ViewMode) => void }) {
   const opt = (mode: ViewMode, label: string) => (
@@ -266,6 +267,7 @@ function ViewToggle({ value, onChange }: { value: ViewMode; onChange: (v: ViewMo
     <div className="inline-flex rounded-lg border border-border bg-secondary/40 p-1">
       {opt('fila', 'Fila')}
       {opt('mesas', 'Por mesa')}
+      {opt('historico', 'Histórico')}
     </div>
   )
 }
@@ -357,6 +359,8 @@ function KitchenBoard() {
             )}
           </>
         )}
+
+        {view === 'historico' && <AuditLog />}
       </main>
     </div>
   )

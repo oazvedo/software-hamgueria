@@ -110,7 +110,39 @@ function echoTable(id: string, body: { tableName?: string }) {
   return { id, tableName: String(body.tableName).trim(), isActive: true, createdAt: now, updatedAt: now }
 }
 
+// Audit trail as the API would have it (ADR 0027): one INSERT per order (author = comanda name) and, when the kitchen
+// moved it, an UPDATE of Status by "admin". Newest first, filtered by table and paged like GET /api/audit.
+function mockAuditEntries() {
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173'
+  const entries = loadOrders().flatMap((o) => {
+    const row = { Id: o.id, TableId: o.tableId, CustomerName: o.customerName, Status: 'Created' }
+    const created = {
+      table: 'Orders', operation: 'INSERT', rowId: o.id, changedFields: [], oldValues: null,
+      newValues: JSON.stringify(row), author: o.customerName, frontendUrl: `${origin}/menu`, requestId: null, createdAt: o.createdAt,
+    }
+    if (o.status === 'Created') return [created]
+    const updated = {
+      ...created, operation: 'UPDATE', changedFields: ['Status'], oldValues: JSON.stringify(row),
+      newValues: JSON.stringify({ ...row, Status: o.status }), author: 'admin', frontendUrl: `${origin}/producao`, createdAt: o.updatedAt,
+    }
+    return [created, updated]
+  })
+  return entries
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .map((e, i, all) => ({ id: all.length - i, ...e }))
+}
+
 export const handlers = [
+  http.get('/api/audit', ({ request }) => {
+    if (!isAuthed(request)) return problems.unauthorized()
+    const url = new URL(request.url)
+    const table = url.searchParams.get('table')
+    const page = Number(url.searchParams.get('page') ?? 1)
+    const pageSize = Number(url.searchParams.get('pageSize') ?? 50)
+    const all = mockAuditEntries().filter((e) => !table || e.table === table)
+    const items = all.slice((page - 1) * pageSize, page * pageSize)
+    return HttpResponse.json({ items, page, pageSize, hasMore: all.length > page * pageSize })
+  }),
   // Same contract as the API's health probe (spec 004): plain text, no details.
   http.get('/api/health', () => HttpResponse.text('Healthy')),
   // Spec 005: database and queue, with the events waiting to be sent. In mock mode everything is up.
