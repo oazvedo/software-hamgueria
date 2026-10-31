@@ -135,7 +135,7 @@ describe('016: preço no modo simulado com a mesma regra do servidor', () => {
     const dish = (price: number) => ({ name: 'Burger', description: 'ok', price, category: 'Hamburgers' })
 
     for (const ok of [0.01, 0.1, 19.99, 34.9, 99999999.99]) expect(validateDish(dish(ok))).toEqual({})
-    for (const bad of [19.999, 0.001]) {
+    for (const bad of [19.999, 0.001, 0.0004, 19.9904, 1e-7]) {
       expect(validateDish(dish(bad)).price).toEqual(['O preço do prato vai até 99.999.999,99, com no máximo 2 casas decimais.'])
     }
   })
