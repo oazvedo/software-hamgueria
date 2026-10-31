@@ -75,7 +75,7 @@ export function MenuCatalog() {
 
   return (
     <div className="flex flex-col gap-8">
-      <nav aria-label="Categorias do cardápio" className="sticky top-16 z-[5] -mx-6 bg-background px-6 py-2">
+      <nav aria-label="Categorias do cardápio" className="sticky top-14 z-[5] -mx-6 bg-background px-6 py-2">
         <div className="flex gap-1 overflow-x-auto rounded-lg border border-border bg-secondary/40 p-1 [scrollbar-width:none]">
           {categories.map((cat) => (
             <CategoryTab

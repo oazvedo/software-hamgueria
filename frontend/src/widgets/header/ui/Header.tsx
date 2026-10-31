@@ -11,7 +11,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur">
-      <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between px-6 py-3">
+      <div className="mx-auto flex h-14 w-full max-w-[1600px] items-center justify-between px-6">
         <Link to="/" className="flex items-center gap-2 font-semibold text-foreground">
           <span className="font-mono text-brand">{'</>'}</span>
           <span>Software Hamgueria</span>
