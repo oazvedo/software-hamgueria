@@ -54,9 +54,9 @@ export function ComandaPage() {
             <div className="flex items-center gap-2">
               {params.tableId && (
                 <Button asChild size="sm" variant="ghost">
-                  <Link to={`/mesa/${params.tableId}`}>
+                  <Link to={`/comandas/${params.tableId}`}>
                     <LayoutGrid />
-                    Ver a mesa toda
+                    Todas as comandas da mesa
                   </Link>
                 </Button>
               )}
