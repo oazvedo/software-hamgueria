@@ -40,6 +40,7 @@ export function MenuPage() {
           <div className="mb-6 flex items-start justify-between gap-3">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight text-foreground">Cardápio</h1>
+              {/* EXCEÇÃO ao ruido-scan/code-crumb: rótulo de seção em forma de comentário, identidade dev do produto (spec 006, RN-02) */}
               <p className="mt-1 font-mono text-sm text-muted-foreground">// monte seu pedido</p>
             </div>
             <ComandaChip />

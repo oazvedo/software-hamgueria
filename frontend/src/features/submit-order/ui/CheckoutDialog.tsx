@@ -5,6 +5,7 @@ import { useOrderStore, useTableComandas } from '@/entities/order'
 import { useTables } from '@/entities/table'
 import { useSubmitOrder } from '@/features/submit-order/model/useSubmitOrder'
 import { fieldErrors } from '@/shared/api/problem'
+import { WindowDots } from '@/shared/ui/atoms'
 import {
   Button,
   Dialog,
@@ -102,9 +103,7 @@ export function CheckoutDialog({
       <DialogContent className="gap-0 overflow-hidden p-0" showCloseButton={false}>
         {/* terminal title bar */}
         <div className="flex items-center gap-2 border-b border-border px-3 py-2">
-          <span className="h-3 w-3 rounded-full bg-[#ff5f56]" />
-          <span className="h-3 w-3 rounded-full bg-[#ffbd2e]" />
-          <span className="h-3 w-3 rounded-full bg-[#27c93f]" />
+          <WindowDots />
           <span className="ml-2 font-mono text-xs text-muted-foreground">checkout.json</span>
         </div>
 
@@ -138,7 +137,10 @@ export function CheckoutDialog({
                           {name}
                         </SelectItem>
                       ))}
-                      <SelectItem value={NEW}>➕ nova comanda</SelectItem>
+                      <SelectItem value={NEW}>
+                        <Plus aria-hidden="true" />
+                        Nova comanda
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </label>

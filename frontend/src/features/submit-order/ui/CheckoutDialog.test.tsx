@@ -73,3 +73,28 @@ describe('checkout com recusa do servidor', () => {
     expect(screen.queryByRole('alert')).toBeNull()
   })
 })
+
+describe('checkout: copy e janela (spec 006)', () => {
+  const openComanda = {
+    id: 'o1', tableId: 't1', tableName: 'Mesa 1', customerName: 'Ana', items: [], status: 'Created',
+    comandaClosed: false, createdAt: '2026-10-31T12:00:00Z', updatedAt: '2026-10-31T12:00:00Z',
+  }
+
+  it('006/CA-08: a opção de nova comanda não tem emoji e vem com ícone fora do leitor de tela', async () => {
+    server.use(http.get('/api/order/table/:tableId', () => HttpResponse.json([openComanda])))
+    renderWithProviders(<CheckoutDialog open onOpenChange={() => {}} />)
+
+    const trigger = await screen.findByRole('combobox')
+    expect(trigger.textContent).toContain('Nova comanda')
+    expect(trigger.textContent).not.toMatch(/\p{Extended_Pictographic}/u)
+    expect(within(trigger).getByText('Nova comanda').parentElement?.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true')
+  })
+
+  it('006/CA-10: as bolinhas da janela usam tokens e ficam fora do leitor de tela', async () => {
+    renderWithProviders(<CheckoutDialog open onOpenChange={() => {}} />)
+
+    const dots = await screen.findByTestId('window-dots')
+    expect(dots.getAttribute('aria-hidden')).toBe('true')
+    expect(dots.innerHTML).not.toMatch(/#[0-9a-f]{3,6}/i)
+  })
+})

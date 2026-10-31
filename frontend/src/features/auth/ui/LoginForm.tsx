@@ -31,6 +31,7 @@ export function LoginForm() {
             <Lock className="size-5" />
           </span>
           <h1 className="text-lg font-semibold text-foreground">Acesso à produção</h1>
+          {/* EXCEÇÃO ao ruido-scan/code-crumb: rótulo de seção em forma de comentário, identidade dev do produto (spec 006, RN-02) */}
           <p className="font-mono text-xs text-muted-foreground">// área da cozinha</p>
         </div>
 

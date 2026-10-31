@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getPipeline, isTerminal } from '@/entities/order/model/orderStatus'
+import { STATUS_META, getPipeline, isTerminal } from '@/entities/order/model/orderStatus'
 
 const states = (status: Parameters<typeof getPipeline>[0]) => getPipeline(status).map((s) => s.state)
 
@@ -20,5 +20,9 @@ describe('pipeline do pedido', () => {
     expect(isTerminal('Done')).toBe(true)
     expect(isTerminal('Cancelled')).toBe(true)
     expect(isTerminal('Created')).toBe(false)
+  })
+
+  it('006/CA-08: as dicas de status não têm emoji', () => {
+    for (const meta of Object.values(STATUS_META)) expect(meta.hint).not.toMatch(/\p{Extended_Pictographic}/u)
   })
 })

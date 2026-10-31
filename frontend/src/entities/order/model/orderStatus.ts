@@ -12,7 +12,7 @@ export interface StatusMeta {
 export const STATUS_META: Record<OrderStatus, StatusMeta> = {
   Draft: { label: 'Rascunho', hint: 'pedido ainda em staging', tone: 'muted' },
   Created: { label: 'Em produção', hint: 'buildando na cozinha…', tone: 'active' },
-  Done: { label: 'Servido', hint: 'deploy concluído 🚀', tone: 'success' },
+  Done: { label: 'Servido', hint: 'deploy concluído', tone: 'success' },
   Cancelled: { label: 'Cancelado', hint: 'rollback aplicado', tone: 'destructive' },
 }
 

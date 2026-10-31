@@ -17,17 +17,20 @@ export function Header() {
           <span>Software Hamgueria</span>
         </Link>
         <nav className="flex items-center gap-1 font-mono text-sm">
+          {/* EXCEÇÃO ao ruido-scan/code-crumb: navegação em forma de caminho de terminal, identidade dev do produto (spec 006, RN-02) */}
           <Link to="/menu" className={linkClass}>
             ~/menu
           </Link>
           {hasComanda && (
             <>
+              {/* EXCEÇÃO ao ruido-scan/code-crumb: navegação em forma de caminho de terminal, identidade dev do produto (spec 006, RN-02) */}
               <Link
                 to={`/comanda/${tableId}/${encodeURIComponent(customerName)}`}
                 className={linkClass}
               >
                 ~/comanda
               </Link>
+              {/* EXCEÇÃO ao ruido-scan/code-crumb: navegação em forma de caminho de terminal, identidade dev do produto (spec 006, RN-02) */}
               <Link to={`/mesa/${tableId}`} className={linkClass}>
                 ~/mesa
               </Link>

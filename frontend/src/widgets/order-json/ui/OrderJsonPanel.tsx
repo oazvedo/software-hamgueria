@@ -4,6 +4,7 @@ import { Send, Trash2 } from 'lucide-react'
 import { buildOrderJson, MAX_ITEM_QUANTITY, useOrderStore } from '@/entities/order'
 import { CheckoutDialog } from '@/features/submit-order'
 import { TableSelect } from '@/features/select-table'
+import { WindowDots } from '@/shared/ui/atoms'
 import { QuantityStepper } from '@/shared/ui/molecules'
 import { Button, Input } from '@/shared/ui/shadcn'
 import { formatCurrency } from '@/shared/lib/formatCurrency'
@@ -23,11 +24,9 @@ export function OrderJsonPanel() {
 
   return (
     <div className="flex h-full flex-col rounded-lg border border-border bg-card shadow-sm">
-      {/* terminal title bar — macOS traffic lights */}
+      {/* terminal title bar */}
       <div className="flex items-center gap-2 border-b border-border px-3 py-2">
-        <span className="h-3 w-3 rounded-full bg-[#ff5f56]" />
-        <span className="h-3 w-3 rounded-full bg-[#ffbd2e]" />
-        <span className="h-3 w-3 rounded-full bg-[#27c93f]" />
+        <WindowDots />
         <span className="ml-2 font-mono text-xs text-muted-foreground">order.json</span>
       </div>
 
@@ -99,9 +98,7 @@ export function OrderJsonPanel() {
           Enviar pedido
         </Button>
         {items.length > 0 && !tableId && (
-          <p className="mt-2 font-mono text-xs text-muted-foreground">
-            // selecione uma mesa para enviar o pedido
-          </p>
+          <p className="mt-2 text-xs text-muted-foreground">Selecione uma mesa para enviar o pedido.</p>
         )}
       </div>
 
