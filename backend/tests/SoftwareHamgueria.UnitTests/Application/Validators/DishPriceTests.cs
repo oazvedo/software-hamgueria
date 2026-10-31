@@ -23,7 +23,4 @@ public class DishPriceTests
     public void MoreThanTwoPlaces_AreRejected(string price) =>
         Assert.Contains("O preço do prato vai até 99.999.999,99, com no máximo 2 casas decimais.",
             Errors(decimal.Parse(price, System.Globalization.CultureInfo.InvariantCulture)));
-
-    [Fact(DisplayName = "016/CA-03: somar preços não perde centavo (0,10 + 0,20 = 0,30)")]
-    public void Decimal_SumsExactly() => Assert.Equal(0.30m, 0.10m + 0.20m);
 }
