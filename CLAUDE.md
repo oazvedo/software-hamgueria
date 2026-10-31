@@ -39,6 +39,7 @@ Toda tela nova ou alterada passa pelo sistema Visant. Os `better-*` entram como 
 
 Comandos (rode da raiz do repo; **sempre** com `npm_config_yes=false`, veja ajuste 1):
 ```bash
+sh scripts/ui/gate.sh [frontend/src/<alvo>]   # os 4 detectores de uma vez; sai 1 se algum achar algo (spec 006)
 export npm_config_yes=false
 node .claude/skills/visant-killer/scripts/killer-scan.mjs frontend/src/<alvo>          # gate (3 de 4 detectores; copy roda à parte)
 node .claude/skills/visant-copy/scripts/copy-lint.mjs frontend/src/<alvo>              # 4º detector, rodado à parte
@@ -74,10 +75,10 @@ node .claude/skills/visant-killer/scripts/verify-screens.mjs --base http://local
    Hamgueria (satírica dev), mas **as proibições valem para toda copy nova ou reescrita**: sem travessão, sem emoji,
    sem ponto-e-vírgula, sem "não é X, é Y". As 11 ocorrências antigas só mudam numa spec própria
    (ver "Candidatos a spec"); não as corrija de passagem.
-9. **Identidade dev vs. detector de ruído (decidido em 2026-10-31):** o `noise-scan` marca `code-crumb`
-   (`// monte seu pedido`, `~/menu`) e `mono-everywhere`, que são o conceito do produto (ADR 0011). **Não remova**
-   esses motivos fora de uma spec que decida quais ficam (com exceção escrita na linha) e quais saem. Em blocos
-   comuns, achados dessas duas regras em código já existente não são fix nem backlog: já estão em "Candidatos a spec".
+9. **Identidade dev vs. detector de ruído (decidido na spec 006, 2026-10-31):** ficam os rótulos de seção `// ...` e
+   a nav `~/`, cada um com `EXCEÇÃO ao ruido-scan/code-crumb: <motivo>` na linha. Instrução nunca tem forma de
+   comentário. Mono em tela de trabalho só em dado tabular, pelo átomo `DataText` (`shared/ui/atoms`). As bolinhas de
+   janela são o átomo `WindowDots` (tokens `--window-*`). Código novo segue isso; o gate (`scripts/ui/gate.sh`) cobra.
 10. **Relatórios** do `killer-scan` (`--init-report`/`--report`) ficam em `docs/audits/`, nunca na raiz.
 
 ## Skills de terceiros: referência (`.claude/skills/`, origem em `_licenses/ORIGEM.md`)
