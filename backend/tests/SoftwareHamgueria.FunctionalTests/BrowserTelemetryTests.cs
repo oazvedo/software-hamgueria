@@ -111,4 +111,12 @@ public class BrowserTelemetryTests(HamgueriaApiFactory factory)
         Assert.Equal([HttpStatusCode.NoContent, HttpStatusCode.NoContent, HttpStatusCode.TooManyRequests], a);
         Assert.Equal(HttpStatusCode.NoContent, b);
     }
+
+    [Theory(DisplayName = "023/CA-04 (falha): página inventada pelo cliente não cria série nova na métrica")]
+    [InlineData("http://x/aaa1", "/outra")]
+    [InlineData("/qualquer-texto/123", "/outra")]
+    [InlineData("http://localhost:5173/comanda/t1/Ana", "/comanda/:param/:param")]
+    [InlineData("http://localhost:5173/", "/")]
+    [InlineData(null, "desconhecida")]
+    public void Route_IsBounded(string? page, string expected) => Assert.Equal(expected, ClientTelemetry.Route(page));
 }

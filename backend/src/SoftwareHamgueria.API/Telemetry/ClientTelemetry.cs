@@ -18,9 +18,12 @@ public static class ClientTelemetry
     public static readonly Histogram<double> WebVitals = HamgueriaTelemetry.Meter.CreateHistogram<double>(
         "hamgueria.web_vitals", description: "Web Vitals medidos no navegador (ms; CLS sem unidade)");
 
+    /// <summary>The app's own pages (frontend routes): any other first segment is reported as <c>/outra</c>.</summary>
+    public static readonly string[] KnownPages = ["menu", "order", "comanda", "comandas", "mesa", "producao"];
+
     /// <summary>
-    /// The page as a low-cardinality route: only the first path segment is kept and every other one becomes
-    /// <c>:param</c>, so metrics do not split into one series per order or comanda (/order/9f3c... is /order/:param).
+    /// The page as a bounded route for the metric tags (review of PR #26): the first segment only if it is one of the
+    /// app's pages, every other segment as <c>:param</c>. A client cannot create new series by inventing paths.
     /// </summary>
     public static string Route(string? page)
     {
@@ -28,6 +31,7 @@ public static class ClientTelemetry
         var path = Uri.TryCreate(page, UriKind.Absolute, out var uri) ? uri.AbsolutePath : page.Split('?', '#')[0];
         var segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
         if (segments.Length == 0) return "/";
-        return "/" + string.Join('/', segments.Take(4).Select((s, i) => i == 0 ? s[..Math.Min(s.Length, 32)] : ":param"));
+        if (!KnownPages.Contains(segments[0])) return "/outra";
+        return "/" + string.Join('/', segments.Take(4).Select((s, i) => i == 0 ? s : ":param"));
     }
 }
