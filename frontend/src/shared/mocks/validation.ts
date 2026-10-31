@@ -111,6 +111,9 @@ export function validateDish(body: { name?: string; description?: string; price?
   }
   if (!(typeof body.price === 'number' && body.price > 0)) {
     add(errors, 'price', 'O preço do prato precisa ser maior que zero.')
+  } else if (Math.abs(body.price * 100 - Math.round(body.price * 100)) > 1e-6 || body.price >= 1e8) {
+    // Same as the API's numeric(10,2) rule (spec 016): at most 2 decimal places, up to 99.999.999,99.
+    add(errors, 'price', 'O preço do prato vai até 99.999.999,99, com no máximo 2 casas decimais.')
   }
   if (!categories.includes(body.category ?? '')) add(errors, 'category', 'Escolha uma categoria do cardápio.')
   return errors

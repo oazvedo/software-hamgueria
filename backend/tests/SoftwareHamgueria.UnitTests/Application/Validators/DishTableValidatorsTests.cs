@@ -11,7 +11,7 @@ public class DishTableValidatorsTests
     private static Dictionary<string, string> Errors(CreateDishDto dto) =>
         new CreateDishDtoValidator().Validate(dto).Errors.ToDictionary(e => e.PropertyName, e => e.ErrorMessage);
 
-    private static CreateDishDto Dish(string name = "Burger", string description = "ok", double price = 10,
+    private static CreateDishDto Dish(string name = "Burger", string description = "ok", decimal price = 10,
         Category category = Category.Hamburgers) => new(name, description, price, category);
 
     [Fact(DisplayName = "003/CA-07: prato com dados válidos passa")]

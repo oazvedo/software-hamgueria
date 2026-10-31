@@ -68,5 +68,4 @@ descartado. Ao aprovar uma spec que resolve um item, remova-o daqui.
 
 | Candidato | Por quê | ADR afetado |
 |---|---|---|
-| Preço como `decimal` | `Dish.Price` é `double`: erros de arredondamento em dinheiro. | 0007 |
 | Lint das fronteiras do FSD | A regra de imports do FSD não é verificada automaticamente. | 0011 |

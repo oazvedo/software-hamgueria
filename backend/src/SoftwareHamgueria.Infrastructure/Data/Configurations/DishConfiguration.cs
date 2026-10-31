@@ -12,7 +12,8 @@ public class DishConfiguration : IEntityTypeConfiguration<Dish>
         builder.HasKey(d => d.Id);
         builder.Property(d => d.Name).IsRequired().HasMaxLength(Limits.DishName);
         builder.Property(d => d.Description).HasMaxLength(Limits.DishDescription);
-        builder.Property(d => d.Price).IsRequired();
+        // Money (spec 016): exact decimal, 2 places; never double.
+        builder.Property(d => d.Price).IsRequired().HasPrecision(10, 2);
         builder.Property(d => d.Category).IsRequired();
         builder.Property(d => d.IsActive).HasDefaultValue(true);
     }
