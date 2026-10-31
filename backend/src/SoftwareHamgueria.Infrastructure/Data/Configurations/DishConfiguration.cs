@@ -10,6 +10,7 @@ public class DishConfiguration : IEntityTypeConfiguration<Dish>
     public void Configure(EntityTypeBuilder<Dish> builder)
     {
         builder.HasKey(d => d.Id);
+        builder.Property(d => d.Id).ValueGeneratedNever(); // the domain generates ids (spec 024, same fix as OrderItem in 005)
         builder.Property(d => d.Name).IsRequired().HasMaxLength(Limits.DishName);
         builder.Property(d => d.Description).HasMaxLength(Limits.DishDescription);
         // Money (spec 016): exact decimal, 2 places; never double.
