@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using SoftwareHamgueria.API.Audit;
 using Hangfire;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.HttpOverrides;
+using SoftwareHamgueria.API.Controllers;
 using SoftwareHamgueria.API.Errors;
 using SoftwareHamgueria.API.Jobs;
 using SoftwareHamgueria.API.Observability;
@@ -79,6 +82,23 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.AddObservability();
+// Behind Caddy (ADR 0023) every request comes from the proxy: take the client IP from X-Forwarded-For (one hop).
+// The API is only reachable inside the compose network, so the header cannot be forged from outside.
+builder.Services.Configure<ForwardedHeadersOptions>(o =>
+{
+    o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    o.ForwardLimit = 1;
+    o.KnownIPNetworks.Clear();
+    o.KnownProxies.Clear();
+});
+// Browser telemetry is public: at most 60 posts per minute per client IP (spec 023).
+builder.Services.AddRateLimiter(o =>
+{
+    o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    o.AddPolicy(TelemetryController.Policy, http => RateLimitPartition.GetFixedWindowLimiter(
+        http.Connection.RemoteIpAddress?.ToString() ?? "desconhecido",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = builder.Configuration.GetValue("Telemetry:PermitPerMinute", 60), Window = TimeSpan.FromMinutes(1) }));
+});
 builder.Services.AddAuthorization();
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
@@ -106,6 +126,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Software Hamgueria API v1"));
 }
 
+app.UseForwardedHeaders();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
