@@ -9,10 +9,13 @@ CI (ADR 0017) barre uma quebra antes da integração, e mistura trabalho em anda
 adaptado de outro projeto que segue a mesma metodologia (`acarolinelais/tcm`, ADR 0027 de lá).
 
 ## Decisão
-**Branches de longa duração:** `main` (estável; só recebe PR da `dev` ou de `hotfix/*`) e `dev` (integração; recebe PR
-das branches de trabalho e o PR de sincronização `main → dev`). Nenhuma aceita commit ou push direto.
+**Branches de longa duração:**
+- `main` (estável): só recebe PR da `dev` ou de `hotfix/*`. Nenhum commit ou push direto.
+- `dev` (integração): aceita **commit e push direto** (ajuste de 2026-10-31: projeto de uma pessoa, o PR para a `dev`
+  era cerimônia). Branch de trabalho + PR para a `dev` continua disponível e é o caminho para uma spec grande ou para
+  pedir a revisão do Claude (ADR 0020). A `dev` não aceita force-push nem pode ser apagada.
 
-**Branches de trabalho** saem da `dev` e voltam por PR:
+**Branches de trabalho** (opcionais) saem da `dev` e voltam por PR:
 ```
 <tipo>/<descricao-em-kebab-case>
 feat/003-validacao-problemdetails   # spec: feat/ exige o número NNN e a pasta docs/specs/NNN-*
@@ -25,7 +28,7 @@ Tipos: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `style`, `perf`, `ci`
 **Commits e títulos de PR** em Conventional Commits: `tipo(escopo opcional)!?: descrição`
 (`feat(comanda): fecha comanda pelo caixa`). `Merge ...` e `Revert ...` gerados pelo git são aceitos.
 
-**Pull requests:** uma spec = uma branch `feat/NNN-...` = um PR para a `dev`, que cita `docs/specs/NNN-nome`
+**Pull requests:** quando uma spec usa branch, é `feat/NNN-...` com um PR para a `dev` que cita `docs/specs/NNN-nome`
 (template em `.github/pull_request_template.md`). Integração por **merge commit**; a branch de trabalho é apagada
 depois. Só integra com os checks verdes (ADR 0017); aprovação humana é opcional. A branch padrão do GitHub passa a ser
 a `dev`.
@@ -36,6 +39,8 @@ a `dev`.
 - **Squash merge:** histórico linear, mas apaga os commits por fase, que são material de estudo.
 
 ## Consequências
-- ✅ A `main` só recebe código que passou pela `dev` com o CI verde; cada PR de feature aponta para a sua spec.
-- ⚠️ Toda mudança precisa de dois PRs para chegar à `main`.
+- ✅ A `main` só recebe código que passou pela `dev` com o CI verde.
+- ✅ Trabalho do dia a dia vai direto para a `dev`, sem PR.
+- ⚠️ Um commit direto na `dev` só é verificado pelo CI depois do push: uma quebra pode ficar na `dev` até ser
+  corrigida, mas nunca chega à `main`.
 - ⚠️ Os commits anteriores a este ADR não seguem todos a convenção (`add readme file`); a regra vale para os novos.

@@ -133,14 +133,15 @@ Ajustes conhecidos:
 ## Git (ADRs 0017 a 0020)
 - Commits **sem** `Co-Authored-By` nem qualquer atribuição ao Claude.
 - Só commite quando o usuário pedir.
-- **Nunca** commite nem dê push direto em `main` ou `dev`. Branch de trabalho a partir da `dev` atualizada, PR para a
-  `dev`. Uma spec = uma branch `feat/NNN-nome` = um PR que cita `docs/specs/NNN-nome`. `main` só recebe PR da `dev`
-  ou de `hotfix/*`.
+- **`main`:** nunca commit nem push direto; só PR da `dev` (ou de `hotfix/*`), com os checks verdes.
+- **`dev`:** commit e push direto são permitidos (sem force-push). Para uma spec grande ou para ter a revisão do
+  Claude, use branch `feat/NNN-nome` e PR para a `dev` citando `docs/specs/NNN-nome`.
 - Branch: `<tipo>/<descricao-em-kebab-case>`. Commits e títulos de PR em Conventional Commits
   (`tipo(escopo): descrição`); tipos `feat fix docs chore refactor test style perf ci build`. Não use `--no-verify`.
 - Hooks versionados: rode uma vez por clone `git config core.hooksPath .githooks`. Regras em `scripts/git/convencao.sh`
   (testes: `sh scripts/git/convencao.test.sh`).
-- No PR, o CI roda `backend`, `frontend`, `e2e` e `convencao`, e o Claude revisa o diff contra os ADRs (`claude.yml`).
+- O CI roda `backend`, `frontend` e `e2e` em todo push na `dev` e em PR; `convencao` e a revisão do Claude
+  (`claude.yml`) rodam só em PR.
   Comente `@claude` no PR ou numa issue para pedir ajuste.
 
 ## Comandos

@@ -13,9 +13,9 @@ commits. Feedback no momento do commit é mais barato. O projeto roda no WSL.
 
   | Hook | Regra |
   |---|---|
-  | `pre-commit` | recusa commit em `main`/`dev` e em branch com nome fora do padrão |
+  | `pre-commit` | recusa commit na `main` e em branch com nome fora do padrão (a `dev` é permitida) |
   | `commit-msg` | recusa mensagem fora de Conventional Commits (aceita `Merge ...` e `Revert ...`) |
-  | `pre-push` | recusa push para `main`/`dev` e de branch com nome fora do padrão |
+  | `pre-push` | recusa push para a `main` e de branch com nome fora do padrão (a `dev` é permitida) |
 
 - POSIX `sh`, sem Node, Python nem framework de hooks. O script tem testes próprios
   (`sh scripts/git/convencao.test.sh`), que também rodam no CI.

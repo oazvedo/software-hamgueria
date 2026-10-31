@@ -18,8 +18,10 @@ servidor, porque hooks locais podem ser pulados. O repositório é público no G
   chamando `scripts/git/convencao.sh`, o mesmo script dos hooks (ADR 0019). Separado para revalidar o título sem
   rodar as suítes de novo.
 - Em PR, um push novo cancela o run anterior; em `dev`/`main`, todo commit integrado é verificado.
-- **Ruleset** em `main` e `dev`: exige PR, exige os checks `backend`, `frontend`, `e2e` e `convencao` verdes,
-  bloqueia force-push e exclusão; não exige aprovação.
+- **Rulesets:**
+  - `main`: exige PR, exige os checks `backend`, `frontend`, `e2e` e `convencao` verdes, bloqueia force-push e
+    exclusão; não exige aprovação.
+  - `dev`: só bloqueia force-push e exclusão. Commit e push direto são permitidos (ADR 0018); o CI roda em cada push.
 - Fora do CI: o e2e no modo `real` (precisa de API + RabbitMQ) e os detectores Visant (ainda têm achados da linha
   de base em "Candidatos a spec").
 - Permissões mínimas (`contents: read`). Dados do PR (título, branches) entram nos scripts por `env`, nunca

@@ -33,7 +33,8 @@ mensagem_valida() {
 
 valida_branch() {
   case "$1" in
-    main | dev) falha "Não commite direto na '$1'. Crie uma branch de trabalho a partir da dev." ;;
+    main) falha "Não commite direto na main. Trabalhe na dev (ou numa branch a partir dela) e abra um PR dev → main." ;;
+    dev) return 0 ;; # commit direto na dev é permitido (ADR 0018)
     feat/[0-9][0-9][0-9]-*) ;;
     feat/*) falha "Branch '$1': feat/ precisa começar com o número da spec." "$FORMATO_BRANCH" ;;
   esac
@@ -43,7 +44,8 @@ valida_branch() {
 
 valida_push() {
   case "$2" in
-    refs/heads/main | refs/heads/dev) falha "Push direto para '${2#refs/heads/}' não é permitido. Abra um PR." ;;
+    refs/heads/main) falha "Push direto para a main não é permitido. Abra um PR dev → main." ;;
+    refs/heads/dev) ;; # push direto na dev é permitido (ADR 0018)
     refs/heads/*) [ "$1" = "(delete)" ] || valida_branch "${2#refs/heads/}" ;;
   esac
 }

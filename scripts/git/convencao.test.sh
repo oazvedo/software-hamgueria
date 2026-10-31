@@ -57,8 +57,8 @@ mensagem falha 'hotfix: corrige login'
 mensagem falha ''
 
 echo '# branch'
-for b in feat/002-x fix/login hotfix/corrige-login docs/adr-0027; do espera ok "branch $b" branch "$b"; done
-for b in main dev feature/abluble minha-branch feat/sem-numero fix/Maiuscula; do
+for b in dev feat/002-x fix/login hotfix/corrige-login docs/adr-0027; do espera ok "branch $b" branch "$b"; done
+for b in main feature/abluble minha-branch feat/sem-numero fix/Maiuscula; do
   espera falha "branch $b" branch "$b"
 done
 
@@ -115,7 +115,7 @@ git remote add origin "$TMP/remoto.git"
 git switch -q main
 confere falha 'pre-commit recusa commit na main' git commit -q --allow-empty -m 'chore: x'
 git switch -q -c dev
-confere falha 'pre-commit recusa commit na dev' git commit -q --allow-empty -m 'chore: x'
+confere ok 'pre-commit aceita commit na dev' git commit -q --allow-empty -m 'chore: x'
 git switch -q -c feature/abluble
 confere falha 'pre-commit recusa branch fora do padrão' git commit -q --allow-empty -m 'chore: x'
 git switch -q -c chore/teste
@@ -123,8 +123,8 @@ confere falha 'commit-msg recusa "Feat: x"' git commit -q --allow-empty -m 'Feat
 saida_contem 'recusa vem do commit-msg' 'Mensagem fora do padrão'
 confere ok 'commit "chore: x" em chore/teste' git commit -q --allow-empty -m 'chore: x'
 confere falha 'pre-push recusa push para a main' git push -q origin HEAD:main
-saida_contem 'recusa vem do pre-push' "Push direto para 'main'"
-confere falha 'pre-push recusa push para a dev' git push -q origin HEAD:dev
+saida_contem 'recusa vem do pre-push' "Push direto para a main"
+confere ok 'pre-push aceita push para a dev' git push -q origin HEAD:dev
 confere falha 'pre-push recusa branch remota fora do padrão' git push -q origin HEAD:minha-branch
 confere ok 'pre-push aceita chore/teste' git push -q origin chore/teste
 confere ok 'pre-push aceita apagar branch de trabalho' git push -q origin --delete chore/teste
