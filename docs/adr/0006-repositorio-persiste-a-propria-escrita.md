@@ -1,6 +1,6 @@
 # 0006. Repositório persiste a própria escrita (sem Unit of Work)
 
-- **Status:** Proposto
+- **Status:** Aceito
 - **Data:** 2026-10-31 (retroativo)
 
 ## Contexto

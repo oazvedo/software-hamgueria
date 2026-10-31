@@ -1,6 +1,6 @@
 # 0012. Estado: TanStack Query (servidor) e Zustand (cliente)
 
-- **Status:** Proposto
+- **Status:** Aceito
 - **Data:** 2026-10-31 (retroativo)
 
 ## Contexto

@@ -1,6 +1,6 @@
 # 0001. Registrar decisões em ADRs
 
-- **Status:** Proposto
+- **Status:** Aceito
 - **Data:** 2026-10-31
 
 ## Contexto

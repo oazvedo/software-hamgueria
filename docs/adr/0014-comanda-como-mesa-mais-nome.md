@@ -1,6 +1,6 @@
 # 0014. Comanda identificada por mesa + nome
 
-- **Status:** Proposto
+- **Status:** Aceito
 - **Data:** 2026-10-31 (retroativo)
 
 ## Contexto

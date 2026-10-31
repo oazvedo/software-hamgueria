@@ -1,6 +1,6 @@
 # 0018. Fluxo de branches (`main` + `dev`) e Conventional Commits
 
-- **Status:** Proposto
+- **Status:** Aceito
 - **Data:** 2026-10-31
 
 ## Contexto

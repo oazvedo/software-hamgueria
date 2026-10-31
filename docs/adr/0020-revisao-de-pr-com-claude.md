@@ -1,6 +1,6 @@
 # 0020. Revisão de PR e `@claude` com o Claude Code Action
 
-- **Status:** Proposto
+- **Status:** Aceito
 - **Data:** 2026-10-31
 
 ## Contexto

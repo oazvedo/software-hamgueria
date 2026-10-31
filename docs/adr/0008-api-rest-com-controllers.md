@@ -1,6 +1,6 @@
 # 0008. API REST com Controllers
 
-- **Status:** Proposto
+- **Status:** Aceito
 - **Data:** 2026-10-31 (retroativo)
 
 ## Contexto

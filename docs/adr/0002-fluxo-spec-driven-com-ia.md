@@ -1,6 +1,6 @@
 # 0002. Fluxo spec-driven com IA
 
-- **Status:** Proposto
+- **Status:** Aceito
 - **Data:** 2026-10-31
 
 ## Contexto

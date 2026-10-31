@@ -1,6 +1,6 @@
 # 0003. Monorepo backend + frontend
 
-- **Status:** Proposto
+- **Status:** Aceito
 - **Data:** 2026-10-31 (retroativo)
 
 ## Contexto

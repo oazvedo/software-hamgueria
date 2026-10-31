@@ -1,6 +1,6 @@
 # 0010. Eventos de pedido publicados no RabbitMQ
 
-- **Status:** Proposto
+- **Status:** Aceito
 - **Data:** 2026-10-31 (retroativo)
 
 ## Contexto

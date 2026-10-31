@@ -1,6 +1,6 @@
 # 0017. CI e proteção de branches no GitHub
 
-- **Status:** Proposto
+- **Status:** Aceito
 - **Data:** 2026-10-31
 
 ## Contexto

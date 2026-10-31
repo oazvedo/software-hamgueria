@@ -1,6 +1,6 @@
 # 0013. Mocks de API com MSW ligados por padrão
 
-- **Status:** Proposto
+- **Status:** Aceito
 - **Data:** 2026-10-31 (retroativo)
 
 ## Contexto

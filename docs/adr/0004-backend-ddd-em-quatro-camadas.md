@@ -1,6 +1,6 @@
 # 0004. Backend em DDD com quatro camadas
 
-- **Status:** Proposto
+- **Status:** Aceito
 - **Data:** 2026-10-31 (retroativo)
 
 ## Contexto

@@ -1,6 +1,6 @@
 # 0011. Frontend React com FSD, Atomic Design e shadcn/ui
 
-- **Status:** Proposto
+- **Status:** Aceito
 - **Data:** 2026-10-31 (retroativo)
 
 ## Contexto

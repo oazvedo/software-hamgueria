@@ -1,6 +1,6 @@
 # 0005. PostgreSQL + EF Core, migrations e seed na inicialização
 
-- **Status:** Proposto
+- **Status:** Aceito
 - **Data:** 2026-10-31 (retroativo)
 
 ## Contexto

@@ -1,6 +1,6 @@
 # 0007. DTOs `record` com mapeamento manual
 
-- **Status:** Proposto
+- **Status:** Aceito
 - **Data:** 2026-10-31 (retroativo)
 
 ## Contexto
