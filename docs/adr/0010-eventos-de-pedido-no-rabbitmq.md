@@ -1,6 +1,6 @@
 # 0010. Eventos de pedido publicados no RabbitMQ
 
-- **Status:** Aceito
+- **Status:** Substituído em parte por [0025](0025-eventos-de-pedido-com-fila-de-espera-em-memoria.md) (conexão e publicação)
 - **Data:** 2026-10-31 (retroativo)
 
 ## Contexto
