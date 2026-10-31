@@ -18,14 +18,15 @@ public sealed class PendingOrderEvents
     private readonly SemaphoreSlim _signal = new(0);
     private readonly ILogger<PendingOrderEvents> _logger;
     private readonly int _capacity;
+    private readonly Func<int> _readCount; // kept alive here: the telemetry gauge holds it only weakly
 
     public PendingOrderEvents(ILogger<PendingOrderEvents> logger, int capacity = DefaultCapacity)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(capacity, 1);
         _logger = logger;
         _capacity = capacity;
-        HamgueriaTelemetry.Meter.CreateObservableGauge(
-            "hamgueria.order_events.pending", () => Count, unit: "{event}", description: "Eventos esperando envio ao RabbitMQ");
+        _readCount = () => Count;
+        HamgueriaTelemetry.TrackPendingEvents(_readCount);
     }
 
     public int Count

@@ -5,6 +5,14 @@ using SoftwareHamgueria.Application.Telemetry;
 
 namespace SoftwareHamgueria.UnitTests.Application.Messaging;
 
+/// <summary>
+/// The pending-events gauge is one per process and follows the latest queue (review of PR #11), so these tests must
+/// not run while other tests create queues in parallel.
+/// </summary>
+[CollectionDefinition(nameof(TelemetryTests), DisableParallelization = true)]
+public class TelemetryCollection;
+
+[Collection(nameof(TelemetryTests))]
 public class TelemetryTests
 {
     private static MeterListener Listen(Action<string, long, object?> onMeasurement)
