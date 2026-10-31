@@ -7,6 +7,7 @@ using SoftwareHamgueria.Infrastructure.Audit;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using SoftwareHamgueria.Application.Repositories;
 using SoftwareHamgueria.Infrastructure.Data;
+using SoftwareHamgueria.Infrastructure.Jobs;
 using SoftwareHamgueria.Infrastructure.Messaging;
 using SoftwareHamgueria.Infrastructure.Repositories;
 
@@ -40,6 +41,8 @@ public static class InfrastructureModule
         services.AddScoped<ITableRepository, TableRepository>();
         services.AddScoped<IComandaRepository, ComandaRepository>();
         services.AddScoped<IAuditRepository, AuditRepository>();
+
+        services.AddJobs();
 
         // Order status is now managed manually from the kitchen screen (/producao),
         // so the automatic RabbitMQ status consumer is disabled. Re-enable to let an

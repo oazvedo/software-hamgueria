@@ -124,12 +124,24 @@ public sealed class BrokerApiFactory : WebApplicationFactory<Program>
         HostName = "127.0.0.1", Port = _brokerPort, UserName = User, Password = Password,
     }.CreateConnectionAsync();
 
+    /// <summary>
+    /// A free port below Linux's ephemeral range (32768+), where Docker picks the random host ports of the other test
+    /// containers: a port taken from the ephemeral range could be handed to another container before ours binds it.
+    /// </summary>
     private static int FreeTcpPort()
     {
-        var listener = new TcpListener(IPAddress.Loopback, 0);
-        listener.Start();
-        var port = ((IPEndPoint)listener.LocalEndpoint).Port;
-        listener.Stop();
-        return port;
+        for (var attempt = 0; attempt < 50; attempt++)
+        {
+            var port = Random.Shared.Next(20000, 30000);
+            try
+            {
+                var listener = new TcpListener(IPAddress.Any, port);
+                listener.Start();
+                listener.Stop();
+                return port;
+            }
+            catch (SocketException) { }
+        }
+        throw new InvalidOperationException("No free port between 20000 and 30000 for the test broker.");
     }
 }

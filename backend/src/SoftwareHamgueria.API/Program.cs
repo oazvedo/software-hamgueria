@@ -6,7 +6,9 @@ using Microsoft.OpenApi;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using SoftwareHamgueria.API.Audit;
+using Hangfire;
 using SoftwareHamgueria.API.Errors;
+using SoftwareHamgueria.API.Jobs;
 using SoftwareHamgueria.API.Observability;
 using SoftwareHamgueria.Application.Audit;
 using SoftwareHamgueria.API.Health;
@@ -107,6 +109,14 @@ if (app.Environment.IsDevelopment())
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+// Job queue dashboard (ADR 0029): under /api so Caddy proxies it; admin credentials by HTTP Basic.
+app.UseHangfireDashboard("/api/jobs", new DashboardOptions
+{
+    Authorization = [new AdminBasicAuthFilter(app.Configuration)],
+    DashboardTitle = "Hamgueria: jobs",
+    AppPath = "/producao",
+    DisplayStorageConnectionString = false,
+});
 // Infrastructure probe for compose and Caddy (ADR 0023): only the database, "Healthy" 200 or "Unhealthy" 503.
 // A broker outage must not mark the API unhealthy (spec 005, RN-07).
 app.MapHealthChecks("/api/health", new HealthCheckOptions { Predicate = c => c.Tags.Contains(HealthTags.Database) });

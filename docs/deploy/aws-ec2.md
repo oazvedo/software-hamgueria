@@ -115,6 +115,10 @@ docker compose -f docker-compose.prod.yml logs aspire-dashboard | grep -i token 
 ssh -i sua-chave.pem -L 18888:localhost:18888 ubuntu@<elastic-ip>               # e abra http://localhost:18888
 ```
 Ele guarda tudo em memória: reiniciar apaga o histórico. Os logs da API saem em JSON no `docker compose logs`.
+## Rotinas de fundo
+O painel de jobs (ADR 0029) fica em `https://<domínio>/api/jobs`, com o usuário e a senha da cozinha do `.env`. Lá aparece a
+limpeza diária do histórico de auditoria (03:00 UTC, prazo em `Jobs__AuditRetentionDays`, padrão 180 dias), com as
+execuções, falhas e o botão para rodar de novo.
 
 ## Antes do primeiro deploy, teste local
 Da raiz do repositório, `sh scripts/deploy/smoke.sh` sobe a mesma pilha na porta 8088 com segredos descartáveis,
