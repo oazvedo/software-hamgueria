@@ -33,4 +33,14 @@ describe('resumo das comandas da mesa', () => {
   it('007/CA-05: mesa sem pedidos não tem comandas', () => {
     expect(summarizeComandas([])).toEqual([])
   })
+
+  it('007/CA-02: ordena por instante, não por texto, com frações de segundo de tamanho diferente', () => {
+    const result = summarizeComandas([
+      order('Ana', '2026-10-31T12:00:00Z'),
+      order('Bia', '2026-10-31T12:00:00.5Z'),
+      order('Caio', '2026-10-31T12:00:00.123456Z'),
+    ])
+
+    expect(result.map((c) => c.customerName)).toEqual(['Bia', 'Caio', 'Ana'])
+  })
 })
