@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Dish } from '@/entities/dish/model/types'
-import type { OrderItem } from '@/entities/order/model/types'
+import type { OrderItem, OrderableDish } from '@/entities/order/model/types'
 
 /** Most units of one dish per order, as the server validates (spec 003, RN-01). */
 export const MAX_ITEM_QUANTITY = 20
@@ -12,7 +11,7 @@ interface OrderState {
   items: OrderItem[]
   setTable: (tableId: string | null) => void
   setCustomerName: (customerName: string) => void
-  addDish: (dish: Dish) => void
+  addDish: (dish: OrderableDish) => void
   removeDish: (dishId: string) => void
   setQuantity: (dishId: string, quantity: number) => void
   setNotes: (dishId: string, notes: string) => void

@@ -42,7 +42,7 @@ Toda tela nova ou alterada passa pelo sistema Visant. Os `better-*` entram como 
 
 Comandos (rode da raiz do repo; **sempre** com `npm_config_yes=false`, veja ajuste 1):
 ```bash
-sh scripts/ui/gate.sh [frontend/src/<alvo>]   # os 4 detectores de uma vez; sai 1 se algum achar algo (spec 006)
+sh scripts/ui/gate.sh [frontend/src/<alvo>]   # detectores Visant + fronteiras do FSD; sai 1 se algum achar algo (specs 006, 022)
 export npm_config_yes=false
 node .claude/skills/visant-killer/scripts/killer-scan.mjs frontend/src/<alvo>          # gate (3 de 4 detectores; copy roda à parte)
 node .claude/skills/visant-copy/scripts/copy-lint.mjs frontend/src/<alvo>              # 4º detector, rodado à parte

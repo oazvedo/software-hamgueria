@@ -1,5 +1,4 @@
-import type { Dish } from '@/entities/dish/model/types'
-import type { Table } from '@/entities/table/model/types'
+import type { Dish, Table } from '@/shared/api/contracts'
 
 const now = new Date().toISOString()
 

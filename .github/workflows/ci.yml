@@ -61,7 +61,9 @@ jobs:
       # Interface gate (ADR 0015, spec 006): colors, noise, copy and motion detectors over frontend/src.
       - name: Gate de interface
         working-directory: .
-        run: sh scripts/ui/gate.sh
+        run: |
+          sh scripts/ui/fsd-lint.test.sh
+          sh scripts/ui/gate.sh
 
   e2e:
     runs-on: ubuntu-latest
