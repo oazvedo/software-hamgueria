@@ -8,6 +8,7 @@ const port = real ? 5174 : 5173
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
+  forbidOnly: Boolean(process.env.CI), // a stray test.only must not silently skip the rest in CI
   reporter: 'list',
   use: { baseURL: `http://localhost:${port}`, trace: 'retain-on-failure' },
   projects: [
