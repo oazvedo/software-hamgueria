@@ -11,5 +11,5 @@ para `features/manage-order`; `waitingLabel` para `entities/order`.
 Chunk inicial: 638 kB para 194 kB (61 kB gzip). Cozinha: chunk próprio de 18 kB; cardápio: 101 kB.
 
 ## Verificação
-CA-01: build (chunks por página). CA-02: `PageLoading` com `role=status`. CA-03: `ProductionPage.test.tsx`,
+CA-01: build (chunks por página). CA-02: `routes.test.tsx` (indicador enquanto baixa, depois a tela; chunk que falha mostra o aviso com Recarregar, pelo `ChunkErrorBoundary`). CA-03: `ProductionPage.test.tsx`,
 `MenuCatalog.test.tsx`, e2e da cozinha e do cliente, sem mudança.

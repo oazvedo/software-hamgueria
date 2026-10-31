@@ -1,6 +1,7 @@
-import { Suspense, lazy } from 'react'
+import { Component, Suspense, lazy, type ReactNode } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { Spinner } from '@/shared/ui/shadcn'
+import { RotateCw } from 'lucide-react'
+import { Button, Spinner } from '@/shared/ui/shadcn'
 
 // One chunk per page (spec 021): the customer never downloads the kitchen, and the first screen loads less.
 const HomePage = lazy(() => import('@/pages/home').then((m) => ({ default: m.HomePage })))
@@ -19,19 +20,49 @@ function PageLoading() {
   )
 }
 
+/**
+ * A page chunk that fails to download (a deploy removed the old file, the network dropped) would unmount the whole app
+ * into a blank screen. This catches it and offers a reload, which fetches the current version (spec 021, CA-02).
+ */
+export class ChunkErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false }
+
+  static getDerivedStateFromError() {
+    return { failed: true }
+  }
+
+  render() {
+    if (!this.state.failed) return this.props.children
+    return (
+      <div role="alert" className="flex min-h-full flex-col items-center justify-center gap-4 p-16 text-center">
+        <p className="text-sm text-foreground">Não foi possível carregar esta tela.</p>
+        <p className="max-w-sm text-xs text-muted-foreground">
+          Pode ser uma versão nova do site ou a conexão. Recarregar busca a versão atual.
+        </p>
+        <Button variant="outline" onClick={() => window.location.reload()}>
+          <RotateCw />
+          Recarregar
+        </Button>
+      </div>
+    )
+  }
+}
+
 export function AppRoutes() {
   return (
-    <Suspense fallback={<PageLoading />}>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/menu" element={<MenuPage />} />
-        <Route path="/order/:id" element={<OrderStatusPage />} />
-        <Route path="/comanda/:tableId/:customerName" element={<ComandaPage />} />
-        <Route path="/comandas/:tableId" element={<TableComandasPage />} />
-        <Route path="/mesa/:tableId" element={<LegacyTableRedirect />} />
-        <Route path="/producao" element={<ProductionPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Suspense>
+    <ChunkErrorBoundary>
+      <Suspense fallback={<PageLoading />}>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/menu" element={<MenuPage />} />
+          <Route path="/order/:id" element={<OrderStatusPage />} />
+          <Route path="/comanda/:tableId/:customerName" element={<ComandaPage />} />
+          <Route path="/comandas/:tableId" element={<TableComandasPage />} />
+          <Route path="/mesa/:tableId" element={<LegacyTableRedirect />} />
+          <Route path="/producao" element={<ProductionPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
+    </ChunkErrorBoundary>
   )
 }
