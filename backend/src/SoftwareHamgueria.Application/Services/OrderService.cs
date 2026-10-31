@@ -2,10 +2,11 @@ using FluentValidation;
 using SoftwareHamgueria.Application.DTOs.Order;
 using SoftwareHamgueria.Application.Exceptions;
 using SoftwareHamgueria.Application.Messaging;
+using SoftwareHamgueria.Application.Orders;
 using SoftwareHamgueria.Application.Repositories;
 using SoftwareHamgueria.Application.Services.Interfaces;
-using SoftwareHamgueria.Domain.Entities;
 using SoftwareHamgueria.Application.Telemetry;
+using SoftwareHamgueria.Domain.Entities;
 
 namespace SoftwareHamgueria.Application.Services;
 
@@ -28,6 +29,8 @@ public class OrderService(
             ?? throw new NotFoundException("A mesa informada não existe.");
 
         var order = new Order(dto.TableId, dto.CustomerName.Trim());
+        var ownerToken = OrderOwnerToken.New();
+        order.SetOwnerTokenHash(OrderOwnerToken.Hash(ownerToken));
         await AddItemsAsync(order, dto.Items);
 
         await orderRepository.AddAsync(order);
@@ -35,14 +38,17 @@ public class OrderService(
         publisher.Publish("order.created", order.Id.ToString());
         HamgueriaTelemetry.OrdersCreated.Add(1);
         // A brand-new order always reopens the comanda, so it is never closed.
-        return ToDto(saved!, false);
+        return ToDto(saved!, false) with { OwnerToken = ownerToken };
     }
 
-    public async Task<OrderResponseDto> UpdateAsync(Guid id, UpdateOrderDto dto)
+    public async Task<OrderResponseDto> UpdateAsync(Guid id, UpdateOrderDto dto, OrderActor actor)
     {
         await updateValidator.ValidateAndThrowAsync(dto);
 
         var order = await orderRepository.GetByIdAsync(id) ?? throw OrderNotFound();
+        EnsureMayChange(order, actor);
+        if (!order.CanMoveTo(OrderStatus.Draft))
+            throw new BusinessRuleException($"Um pedido {Final(order)} não pode mais ser alterado.");
 
         order.Items.Clear();
         await AddItemsAsync(order, dto.Items);
@@ -84,9 +90,12 @@ public class OrderService(
         return orders.Select(o => ToDto(o, IsClosed(o, closures)));
     }
 
-    public async Task CancelAsync(Guid id)
+    public async Task CancelAsync(Guid id, OrderActor actor)
     {
         var order = await orderRepository.GetByIdAsync(id) ?? throw OrderNotFound();
+        EnsureMayChange(order, actor);
+        if (!order.CanMoveTo(OrderStatus.Cancelled))
+            throw new BusinessRuleException($"Um pedido {Final(order)} não pode ser cancelado.");
         order.Cancel();
         await orderRepository.UpdateAsync(order);
         publisher.Publish("order.cancelled", order.Id.ToString());
@@ -95,6 +104,10 @@ public class OrderService(
     public async Task UpdateStatusAsync(Guid id, OrderStatus status)
     {
         var order = await orderRepository.GetByIdAsync(id) ?? throw OrderNotFound();
+        if (!order.CanMoveTo(status))
+            throw new BusinessRuleException(order.IsFinal
+                ? $"Um pedido {Final(order)} não muda mais de status."
+                : $"O pedido não pode ir de {StatusName(order.Status)} para {StatusName(status)}.");
         order.UpdateStatus(status);
         await orderRepository.UpdateAsync(order);
     }
@@ -137,4 +150,22 @@ public class OrderService(
         new(o.Id, o.TableId, o.Table?.TableName ?? string.Empty, o.CustomerName,
             o.Items.Select(i => new OrderItemResponseDto(i.DishId, i.Dish?.Name ?? string.Empty, i.Dish?.Price ?? 0, i.Quantity, i.Notes)).ToList(),
             o.Status, comandaClosed, o.CreatedAt, o.UpdatedAt);
+
+    /// <summary>The kitchen may always act; a customer needs the order's owner token (ADR 0030).</summary>
+    private static void EnsureMayChange(Order order, OrderActor actor)
+    {
+        if (actor.IsKitchen || OrderOwnerToken.Matches(order.OwnerTokenHash, actor.OwnerToken)) return;
+        throw new ForbiddenException("Só quem fez o pedido (ou a cozinha) pode alterar ou cancelar.");
+    }
+
+    private static string Final(Order order) => order.Status == OrderStatus.Done ? "já servido" : "cancelado";
+
+    private static string StatusName(OrderStatus status) => status switch
+    {
+        OrderStatus.Draft => "rascunho",
+        OrderStatus.Created => "em produção",
+        OrderStatus.Done => "servido",
+        OrderStatus.Cancelled => "cancelado",
+        _ => status.ToString(),
+    };
 }

@@ -49,5 +49,3 @@ descartado. Ao aprovar uma spec que resolve um item, remova-o daqui.
 | Esconder pratos inativos do cardápio | O cardápio mostra pratos desativados; o cliente só descobre no envio do pedido. | — |
 | Rotas com `React.lazy` | As 6 páginas são importadas estaticamente em `app/router/routes.tsx`; o cliente baixa a tela da cozinha. (`vercel-react-best-practices` → `bundle-dynamic-imports`) | 0011 |
 | Quebrar a `ProductionPage` | 375 linhas numa página; partes viram widgets/features (fila, por mesa, ações do pedido). | 0011 |
-| Cancelamento só pelo dono da comanda | Qualquer pessoa com o id cancela o pedido (001/CA-12 ⚠️, ADR 0009). |  0009, 0014 |
-| Transições de status válidas | `PATCH /status` aceita qualquer transição (ex.: `Cancelled` → `Done`); `UpdateAsync` volta o pedido para `Draft` mesmo se já servido. | — |

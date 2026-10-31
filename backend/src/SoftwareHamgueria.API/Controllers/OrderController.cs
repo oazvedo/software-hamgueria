@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SoftwareHamgueria.Application.DTOs.Order;
+using SoftwareHamgueria.Application.Orders;
 using SoftwareHamgueria.Application.Services.Interfaces;
 using SoftwareHamgueria.Domain.Entities;
 
@@ -47,14 +48,17 @@ public class OrderController(IOrderService orderService) : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = order.Id }, order);
     }
 
+    /// <summary>Header with the owner token returned when the order was created (ADR 0030).</summary>
+    public const string OwnerTokenHeader = "X-Order-Token";
+
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateOrderDto dto) =>
-        Ok(await orderService.UpdateAsync(id, dto));
+        Ok(await orderService.UpdateAsync(id, dto, Actor()));
 
     [HttpPatch("{id:guid}/cancel")]
     public async Task<IActionResult> Cancel(Guid id)
     {
-        await orderService.CancelAsync(id);
+        await orderService.CancelAsync(id, Actor());
         return NoContent();
     }
 
@@ -65,4 +69,8 @@ public class OrderController(IOrderService orderService) : ControllerBase
         await orderService.UpdateStatusAsync(id, status);
         return NoContent();
     }
+
+    private OrderActor Actor() => User.IsInRole("Admin")
+        ? OrderActor.Kitchen
+        : OrderActor.Customer(Request.Headers[OwnerTokenHeader].ToString());
 }

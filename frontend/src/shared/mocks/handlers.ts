@@ -29,6 +29,34 @@ interface StoredOrder {
 // Status is driven manually by the kitchen — orders stay 'Created' until an
 // admin finalizes or cancels them.
 const STORE_KEY = 'hamgueria-mock-orders'
+// Owner tokens kept apart from the orders, like the API keeps only a hash (ADR 0030): GET never returns them.
+const OWNER_KEY = 'hamgueria-mock-owner-tokens'
+
+function loadOwnerTokens(): Record<string, string> {
+  try {
+    return JSON.parse(localStorage.getItem(OWNER_KEY) ?? '{}') as Record<string, string>
+  } catch {
+    return {}
+  }
+}
+
+/** The kitchen, or whoever holds the token returned when the order was created (spec 012). */
+function mayChange(request: Request, orderId: string): boolean {
+  if (isAuthed(request)) return true
+  const token = request.headers.get('X-Order-Token')
+  return Boolean(token) && loadOwnerTokens()[orderId] === token
+}
+
+// Same moves as Order.CanMoveTo in the API: served and cancelled are final.
+const MOVES: Record<MockStatus, MockStatus[]> = {
+  Created: ['Draft', 'Done', 'Cancelled'],
+  Draft: ['Draft', 'Created', 'Done', 'Cancelled'],
+  Done: [],
+  Cancelled: [],
+}
+const FINAL_LABEL: Partial<Record<MockStatus, string>> = { Done: 'já servido', Cancelled: 'cancelado' }
+const STATUS_LABEL: Record<MockStatus, string> = { Draft: 'rascunho', Created: 'em produção', Done: 'servido', Cancelled: 'cancelado' }
+const FORBIDDEN = 'Só quem fez o pedido (ou a cozinha) pode alterar ou cancelar.'
 
 function loadOrders(): StoredOrder[] {
   try {
@@ -222,7 +250,9 @@ export const handlers = [
     const list = loadOrders()
     list.push(order)
     saveOrders(list)
-    return HttpResponse.json({ ...order, comandaClosed: false }, { status: 201 })
+    const ownerToken = crypto.randomUUID()
+    localStorage.setItem(OWNER_KEY, JSON.stringify({ ...loadOwnerTokens(), [order.id]: ownerToken }))
+    return HttpResponse.json({ ...order, comandaClosed: false, ownerToken }, { status: 201 })
   }),
 
   // Public: close (settle) a comanda so it leaves the active tabs.
@@ -251,16 +281,26 @@ export const handlers = [
     const list = loadOrders()
     const order = list.find((o) => o.id === params.id)
     if (!order) return problems.notFound('Pedido não encontrado.')
-    order.status = (await request.json()) as MockStatus
+    const next = (await request.json()) as MockStatus
+    if (!MOVES[order.status].includes(next))
+      return problems.businessRule(
+        FINAL_LABEL[order.status]
+          ? `Um pedido ${FINAL_LABEL[order.status]} não muda mais de status.`
+          : `O pedido não pode ir de ${STATUS_LABEL[order.status]} para ${STATUS_LABEL[next]}.`,
+      )
+    order.status = next
     order.updatedAt = new Date().toISOString()
     saveOrders(list)
     return new HttpResponse(null, { status: 204 })
   }),
 
-  http.patch('/api/order/:id/cancel', ({ params }) => {
+  http.patch('/api/order/:id/cancel', ({ request, params }) => {
     const list = loadOrders()
     const order = list.find((o) => o.id === params.id)
     if (!order) return problems.notFound('Pedido não encontrado.')
+    if (!mayChange(request, order.id)) return problems.forbidden(FORBIDDEN)
+    if (!MOVES[order.status].includes('Cancelled'))
+      return problems.businessRule(`Um pedido ${FINAL_LABEL[order.status]} não pode ser cancelado.`)
     order.status = 'Cancelled'
     order.updatedAt = new Date().toISOString()
     saveOrders(list)
@@ -297,6 +337,9 @@ export const handlers = [
     const list = loadOrders()
     const order = list.find((o) => o.id === params.id)
     if (!order) return problems.notFound('Pedido não encontrado.')
+    if (!mayChange(request, order.id)) return problems.forbidden(FORBIDDEN)
+    if (!MOVES[order.status].includes('Draft'))
+      return problems.businessRule(`Um pedido ${FINAL_LABEL[order.status]} não pode mais ser alterado.`)
     const items = resolveItems(body.items)
     if (!Array.isArray(items)) return items
     order.items = items
