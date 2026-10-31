@@ -1,6 +1,6 @@
 # 0025. Eventos de pedido com fila de espera em memória e envio em segundo plano
 
-- **Status:** Aceito
+- **Status:** Substituído por [0031](0031-outbox-transacional.md)
 - **Data:** 2026-10-31
 
 ## Contexto

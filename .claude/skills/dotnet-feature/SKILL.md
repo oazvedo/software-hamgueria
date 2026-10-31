@@ -143,8 +143,8 @@ Regras: validar → carregar → regra de negócio → método da entidade → *
 - Registre no `ApplicationModule.cs`: `services.AddScoped<ITableService, TableService>();`
 
 ### 8. Eventos (só se a spec pedir)
-Injete `IOrderEventPublisher` e publique **depois** da escrita: `publisher.Publish("order.created", order.Id.ToString())`.
-`Publish` só enfileira; o envio ao RabbitMQ é em segundo plano e nunca derruba a requisição (ADR 0025).
+Injete `IOrderEventPublisher` e publique **antes** da escrita do repositório (outbox, ADR 0031): `publisher.Publish("order.created", order.Id.ToString())`.
+`Publish` grava no outbox (sem salvar) e deve vir **antes** da escrita do repositório, que salva os dois juntos; o envio é em segundo plano (ADR 0031).
 Routing key `<agregado>.<evento-no-passado>` no exchange `hamgueria.orders` (ADR 0010). Outro agregado com eventos
 próprios = nova porta em `Application/Messaging/` + implementação em `Infrastructure/Messaging/`, decidido no `plan.md`.
 
