@@ -56,6 +56,8 @@ services:
       Auth__AdminUsername: ${AUTH_ADMIN_USERNAME:?defina AUTH_ADMIN_USERNAME no .env}
       Auth__AdminPassword: ${AUTH_ADMIN_PASSWORD:?defina AUTH_ADMIN_PASSWORD no .env}
       Auth__JwtSecret: ${AUTH_JWT_SECRET:?defina AUTH_JWT_SECRET no .env}
+      # Telemetry (ADR 0028). Empty = no exporter; with the "observability" profile, point it at the dashboard.
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
     healthcheck:
       # The aspnet image has no curl: plain HTTP over bash's /dev/tcp, healthy only on "200".
       test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/8080 && printf 'GET /api/health HTTP/1.0\\r\\n\\r\\n' >&3 && head -n1 <&3 | grep -q ' 200 '"]
@@ -78,6 +80,18 @@ services:
     volumes:
       - caddy_data:/data
       - caddy_config:/config
+    logging: *logging
+
+  # Optional (docker compose --profile observability ...). Bound to the instance's loopback: open it through an SSH
+  # tunnel (ssh -L 18888:localhost:18888 ...). The login token is printed in its log.
+  aspire-dashboard:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:9.5
+    profiles: ["observability"]
+    restart: unless-stopped
+    environment:
+      DASHBOARD__OTLP__AUTHMODE: Unsecured   # only the internal network reaches the OTLP port
+    ports:
+      - "127.0.0.1:18888:18888"
     logging: *logging
 
 volumes:

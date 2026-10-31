@@ -34,6 +34,7 @@ Ordem de execução. Cada item vira uma spec com PR próprio para a `dev`. O que
 | 011 | Fila de jobs | Tarefas de fundo (limpeza, rotinas) não têm onde rodar com retry e painel | Hangfire com storage no Postgres (o equivalente .NET do BullMQ: retry, agendamento, painel); jobs de retenção da auditoria |
 | 012 | Pedido seguro | Qualquer um com o id cancela; status aceita qualquer transição | Cancelamento só pela comanda dona; máquina de estados de status |
 | 013 | CI de interface e imagens | `gate.sh` e os Dockerfiles não rodam no CI | Passo do gate no job `frontend`; job que constrói as duas imagens |
+| 014 | Tema claro | O app só tem o tema escuro (`class="dark"` fixo); os tokens claros existem mas não são alcançáveis | Alternância claro/escuro no header, seguindo o sistema por padrão e lembrando a escolha; telas conferidas nos dois temas (pedido do usuário, 2026-10-31) |
 
 ## Candidatos a spec
 Dívidas e ideias encontradas na adoção do fluxo (2026-10-31). Cada item vira uma spec, entra numa spec existente ou é

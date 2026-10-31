@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
 using SoftwareHamgueria.Application.Messaging;
+using SoftwareHamgueria.Application.Telemetry;
 
 namespace SoftwareHamgueria.Infrastructure.Messaging;
 
@@ -89,6 +90,10 @@ public sealed class RabbitMqEventDispatcher(
     {
         while (pending.TryPeek(out var orderEvent))
         {
+            using var activity = HamgueriaTelemetry.Source.StartActivity("publish order event", System.Diagnostics.ActivityKind.Producer);
+            activity?.SetTag("messaging.system", "rabbitmq");
+            activity?.SetTag("messaging.destination.name", ExchangeName);
+            activity?.SetTag("messaging.rabbitmq.destination.routing_key", orderEvent!.RoutingKey);
             using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
             timeout.CancelAfter(_publishTimeout);
             try
@@ -97,10 +102,19 @@ public sealed class RabbitMqEventDispatcher(
                     ExchangeName, orderEvent!.RoutingKey, mandatory: false,
                     new BasicProperties { Persistent = true }, System.Text.Encoding.UTF8.GetBytes(orderEvent.Message),
                     timeout.Token);
+                HamgueriaTelemetry.OrderEventsPublished.Add(1);
+            }
+            catch (Exception ex) when (ex is not PublishException)
+            {
+                // Connection lost or timeout: the event stays queued and the loop reconnects; the span says it failed.
+                activity?.SetStatus(System.Diagnostics.ActivityStatusCode.Error, ex.GetType().Name);
+                throw;
             }
             catch (PublishException ex)
             {
                 // The broker refused this event for good (nack): retrying would block every event behind it.
+                activity?.SetStatus(System.Diagnostics.ActivityStatusCode.Error, "nack");
+                HamgueriaTelemetry.OrderEventsDropped.Add(1, new KeyValuePair<string, object?>("reason", "nack"));
                 logger.LogError(ex, "RabbitMQ refused {RoutingKey} for order {OrderId}; event dropped",
                     orderEvent!.RoutingKey, orderEvent.Message);
             }

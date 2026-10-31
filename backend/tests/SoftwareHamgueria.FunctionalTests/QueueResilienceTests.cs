@@ -79,3 +79,41 @@ public class QueueOutageWhileRunningTests
         Assert.Equal([("order.created", second.Id.ToString())], await api.ReceiveEventsAsync(1));
     }
 }
+
+public class QueueTelemetryTests
+{
+    [Fact(DisplayName = "010/CA-03: evento enviado conta em published e gera o span de envio, ligado ao broker")]
+    public async Task PublishedEvent_IsCounted_AndTraced()
+    {
+        long published = 0;
+        using var meters = new System.Diagnostics.Metrics.MeterListener
+        {
+            InstrumentPublished = (i, l) =>
+            {
+                if (i.Meter.Name == SoftwareHamgueria.Application.Telemetry.HamgueriaTelemetry.Name && i.Name == "hamgueria.order_events.published")
+                    l.EnableMeasurementEvents(i);
+            },
+        };
+        meters.SetMeasurementEventCallback<long>((_, v, _, _) => Interlocked.Add(ref published, v));
+        meters.Start();
+        var spans = new System.Collections.Concurrent.ConcurrentBag<System.Diagnostics.Activity>();
+        using var tracer = new System.Diagnostics.ActivityListener
+        {
+            ShouldListenTo = s => s.Name == SoftwareHamgueria.Application.Telemetry.HamgueriaTelemetry.Name,
+            Sample = (ref System.Diagnostics.ActivityCreationOptions<System.Diagnostics.ActivityContext> _) =>
+                System.Diagnostics.ActivitySamplingResult.AllDataAndRecorded,
+            ActivityStopped = spans.Add,
+        };
+        System.Diagnostics.ActivitySource.AddActivityListener(tracer);
+
+        await using var api = await BrokerApiFactory.StartAsync(brokerUp: true);
+        var client = api.CreateApiClient();
+        var order = await client.CreateOrderAsync(ApiClient.UniqueCustomer("Otel"));
+        await api.ReceiveEventsAsync(1);
+
+        Assert.True(Interlocked.Read(ref published) >= 1);
+        var span = spans.First(a => a.DisplayName == "publish order event" && a.Status != System.Diagnostics.ActivityStatusCode.Error);
+        Assert.Equal("order.created", span.GetTagItem("messaging.rabbitmq.destination.routing_key"));
+        Assert.Equal(System.Diagnostics.ActivityKind.Producer, span.Kind);
+    }
+}

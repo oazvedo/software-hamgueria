@@ -46,6 +46,7 @@ public sealed class HamgueriaApiFactory : WebApplicationFactory<Program>, IAsync
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseSetting("ConnectionStrings:Postgres", ConnectionString);
+        builder.UseSetting("OTEL_EXPORTER_OTLP_ENDPOINT", ""); // no collector in tests (ADR 0028)
         // No broker in these tests: events go to the fake publisher, and the background sender (ADR 0025) points at a
         // closed port so it never reaches a developer's local RabbitMQ. BrokerApiFactory covers the real broker.
         builder.UseSetting("RabbitMq:Host", "127.0.0.1");

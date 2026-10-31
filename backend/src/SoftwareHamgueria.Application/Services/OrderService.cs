@@ -5,6 +5,7 @@ using SoftwareHamgueria.Application.Messaging;
 using SoftwareHamgueria.Application.Repositories;
 using SoftwareHamgueria.Application.Services.Interfaces;
 using SoftwareHamgueria.Domain.Entities;
+using SoftwareHamgueria.Application.Telemetry;
 
 namespace SoftwareHamgueria.Application.Services;
 
@@ -32,6 +33,7 @@ public class OrderService(
         await orderRepository.AddAsync(order);
         var saved = await orderRepository.GetByIdAsync(order.Id);
         publisher.Publish("order.created", order.Id.ToString());
+        HamgueriaTelemetry.OrdersCreated.Add(1);
         // A brand-new order always reopens the comanda, so it is never closed.
         return ToDto(saved!, false);
     }

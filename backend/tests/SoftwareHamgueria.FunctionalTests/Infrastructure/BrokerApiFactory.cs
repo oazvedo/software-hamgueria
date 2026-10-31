@@ -94,6 +94,7 @@ public sealed class BrokerApiFactory : WebApplicationFactory<Program>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseSetting("ConnectionStrings:Postgres", _postgres.GetConnectionString());
+        builder.UseSetting("OTEL_EXPORTER_OTLP_ENDPOINT", "");
         builder.UseSetting("RabbitMq:Host", "127.0.0.1");
         builder.UseSetting("RabbitMq:Port", _brokerPort.ToString());
         builder.UseSetting("RabbitMq:Username", User);

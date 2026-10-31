@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using SoftwareHamgueria.Application.Telemetry;
 
 namespace SoftwareHamgueria.Application.Messaging;
 
@@ -17,12 +18,15 @@ public sealed class PendingOrderEvents
     private readonly SemaphoreSlim _signal = new(0);
     private readonly ILogger<PendingOrderEvents> _logger;
     private readonly int _capacity;
+    private readonly Func<int> _readCount; // kept alive here: the telemetry gauge holds it only weakly
 
     public PendingOrderEvents(ILogger<PendingOrderEvents> logger, int capacity = DefaultCapacity)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(capacity, 1);
         _logger = logger;
         _capacity = capacity;
+        _readCount = () => Count;
+        HamgueriaTelemetry.TrackPendingEvents(_readCount);
     }
 
     public int Count
@@ -40,9 +44,12 @@ public sealed class PendingOrderEvents
         }
 
         if (dropped is not null)
+        {
+            HamgueriaTelemetry.OrderEventsDropped.Add(1, new KeyValuePair<string, object?>("reason", "queue_full"));
             _logger.LogWarning(
                 "Order event queue full ({Capacity}): dropped {RoutingKey} for order {OrderId}",
                 _capacity, dropped.RoutingKey, dropped.Message);
+        }
 
         // Wake the sender; one pending release is enough, it drains everything it finds.
         if (_signal.CurrentCount == 0) _signal.Release();
