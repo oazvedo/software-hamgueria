@@ -31,6 +31,12 @@ jobs:
       - name: Testes
         run: dotnet test --solution backend/SoftwareHamgueria.slnx
 
+      # No package with a known vulnerability, direct or transitive (spec 018).
+      - name: Dependências sem vulnerabilidade conhecida
+        run: |
+          sh scripts/ci/nuget-vulnerabilities.test.sh
+          sh scripts/ci/nuget-vulnerabilities.sh
+
   frontend:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -47,6 +53,8 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - run: npm ci
+      # No high or critical advisory in the dependency tree (spec 018).
+      - run: npm audit --audit-level=high
       - run: npm test
       - run: npm run lint
       - run: npm run build
