@@ -14,4 +14,7 @@ public class AuditRepository(AppDbContext context) : IAuditRepository
         if (rowId is not null) query = query.Where(e => e.RowId == rowId);
         return await query.OrderByDescending(e => e.Id).Skip(skip).Take(take).ToListAsync();
     }
+
+    public Task<int> DeleteOlderThanAsync(DateTime cutoff) =>
+        context.AuditLog.Where(e => e.CreatedAt < cutoff).ExecuteDeleteAsync();
 }

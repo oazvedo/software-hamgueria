@@ -1,5 +1,7 @@
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using SoftwareHamgueria.Application.Jobs;
 using Microsoft.Extensions.Logging;
 using SoftwareHamgueria.Application.Messaging;
 using SoftwareHamgueria.Application.Services;
@@ -17,6 +19,8 @@ public static class ApplicationModule
         services.AddScoped<ITableService, TableService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IAuditService, AuditService>();
+        services.AddScoped<AuditRetentionJob>();
+        services.TryAddSingleton(TimeProvider.System);
         // Events are queued here and sent by the Infrastructure in the background (ADR 0025).
         services.AddSingleton(sp => new PendingOrderEvents(sp.GetRequiredService<ILogger<PendingOrderEvents>>()));
         services.AddSingleton<IOrderEventPublisher, QueuedOrderEventPublisher>();
