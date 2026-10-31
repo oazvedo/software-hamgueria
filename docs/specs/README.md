@@ -21,9 +21,17 @@ Para criar: skill `spec`. Para implementar: skill `implement-task`. Templates em
 | 004 | [Preparar o Hamgueria para rodar num servidor na nuvem](004-deploy-aws-ec2/spec.md) | Concluída |
 | 005 | [Pedidos funcionam com a fila de mensagens fora do ar](005-fila-resiliente/spec.md) | Concluída |
 | 006 | [Telas limpas, com a identidade dev só onde ela ajuda](006-limpeza-ui/spec.md) | Concluída |
+| 007 | [Todas as comandas da mesa num lugar só](007-comandas-da-mesa/spec.md) | Concluída |
+| 008 | [Cardápio sem emoji e mais fácil de percorrer](008-cardapio/spec.md) | Concluída |
+| 009 | [Auditoria: quem mudou o quê, quando e de qual tela](009-auditoria/spec.md) | Concluída |
+| 010 | [Ver o que acontece dentro do sistema](010-observabilidade/spec.md) | Concluída |
+| 011 | [Tarefas de fundo com repetição e painel](011-jobs/spec.md) | Concluída |
+| 012 | [Só o dono muda o pedido, e status não anda para trás](012-pedido-seguro/spec.md) | Concluída |
+| 013 | [O CI cobra o gate de interface e as imagens de produção](013-ci-gate-e-imagens/spec.md) | Concluída |
+| 014 | [Tema claro](014-tema-claro/spec.md) | Concluída |
 
-## Lote autônomo (2026-10-31, ADR 0026)
-Ordem de execução. Cada item vira uma spec com PR próprio para a `dev`. O que não couber vai para "Candidatos".
+## Lote autônomo (2026-10-31, ADR 0026): concluído
+Ordem de execução, todas integradas na `dev` (PRs #7 a #15). Cada item vira uma spec com PR próprio para a `dev`. O que não couber vai para "Candidatos".
 
 | # | Spec | O que resolve | Decisão já tomada |
 |---|---|---|---|
