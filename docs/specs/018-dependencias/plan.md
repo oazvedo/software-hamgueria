@@ -10,3 +10,5 @@ o `dotnet list ... --vulnerable` acusar algo, e `npm audit --audit-level=high` n
 ## Risco
 Um aviso novo publicado no npm ou no NuGet pode reprovar um PR que não mexeu em dependência. É o comportamento
 desejado: o PR seguinte corrige a dependência.
+
+Evidência do CA-03 (2026-10-31): com `Newtonsoft.Json` 11.0.1 acrescentado de propósito aos testes de unidade, `sh scripts/ci/nuget-vulnerabilities.sh` sai com 1 ("pacote vulnerável"); sem ele, sai 0 com 6 projetos confirmados.

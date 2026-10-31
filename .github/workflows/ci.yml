@@ -33,9 +33,7 @@ jobs:
 
       # No package with a known vulnerability, direct or transitive (spec 018).
       - name: Dependências sem vulnerabilidade conhecida
-        run: |
-          dotnet list backend/SoftwareHamgueria.slnx package --vulnerable --include-transitive | tee vulnerable.txt
-          ! grep -q "has the following vulnerable packages" vulnerable.txt
+        run: sh scripts/ci/nuget-vulnerabilities.sh
 
   frontend:
     runs-on: ubuntu-latest
