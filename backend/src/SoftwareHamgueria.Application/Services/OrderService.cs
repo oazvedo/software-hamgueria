@@ -33,9 +33,10 @@ public class OrderService(
         order.SetOwnerTokenHash(OrderOwnerToken.Hash(ownerToken));
         await AddItemsAsync(order, dto.Items);
 
+        // Outbox (ADR 0031): the event is staged first and saved by the same write as the order.
+        publisher.Publish("order.created", order.Id.ToString());
         await orderRepository.AddAsync(order);
         var saved = await orderRepository.GetByIdAsync(order.Id);
-        publisher.Publish("order.created", order.Id.ToString());
         HamgueriaTelemetry.OrdersCreated.Add(1);
         // A brand-new order always reopens the comanda, so it is never closed.
         return ToDto(saved!, false) with { OwnerToken = ownerToken };
@@ -54,9 +55,9 @@ public class OrderService(
         await AddItemsAsync(order, dto.Items);
 
         order.UpdateStatus(OrderStatus.Draft);
+        publisher.Publish("order.updated", order.Id.ToString());
         await orderRepository.UpdateAsync(order);
         var saved = await orderRepository.GetByIdAsync(order.Id);
-        publisher.Publish("order.updated", order.Id.ToString());
         return ToDto(saved!, false);
     }
 
@@ -97,8 +98,8 @@ public class OrderService(
         if (!order.CanMoveTo(OrderStatus.Cancelled))
             throw new BusinessRuleException($"Um pedido {Final(order)} não pode ser cancelado.");
         order.Cancel();
-        await orderRepository.UpdateAsync(order);
         publisher.Publish("order.cancelled", order.Id.ToString());
+        await orderRepository.UpdateAsync(order);
     }
 
     public async Task UpdateStatusAsync(Guid id, OrderStatus status)
