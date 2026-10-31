@@ -3,12 +3,12 @@ import { httpClient } from '@/shared/api/httpClient'
 import { queryKeys } from '@/shared/api/queryKeys'
 import type { Dish } from '@/entities/dish/model/types'
 
-// Port: fetches the full dish catalog from the backend (GET /api/dish).
-export async function fetchDishes(): Promise<Dish[]> {
-  const { data } = await httpClient.get<Dish[]>('/api/dish')
+// Port: the dish catalog (GET /api/dish). The public menu asks only for active dishes (spec 024).
+export async function fetchDishes(onlyActive = false): Promise<Dish[]> {
+  const { data } = await httpClient.get<Dish[]>('/api/dish', onlyActive ? { params: { active: true } } : undefined)
   return data
 }
 
-export function useDishes() {
-  return useQuery({ queryKey: queryKeys.dishes, queryFn: fetchDishes })
+export function useDishes({ onlyActive = false }: { onlyActive?: boolean } = {}) {
+  return useQuery({ queryKey: [...queryKeys.dishes, onlyActive ? 'active' : 'all'], queryFn: () => fetchDishes(onlyActive) })
 }

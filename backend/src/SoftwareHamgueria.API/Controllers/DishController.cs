@@ -10,7 +10,8 @@ namespace SoftwareHamgueria.API.Controllers;
 public class DishController(IDishService dishService) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetAll() => Ok(await dishService.GetAllAsync());
+    /// <param name="active">true = only the dishes the kitchen can make (the public menu, spec 024).</param>
+    public async Task<IActionResult> GetAll([FromQuery] bool active = false) => Ok(await dishService.GetAllAsync(active));
 
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)

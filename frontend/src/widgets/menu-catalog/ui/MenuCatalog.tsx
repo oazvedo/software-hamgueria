@@ -53,7 +53,7 @@ function useSectionOnScreen(categories: DishCategory[], bar: RefObject<HTMLEleme
  * and only the dishes the kitchen can make (inactive ones stay out).
  */
 export function MenuCatalog() {
-  const { data: dishes, isLoading, isError } = useDishes()
+  const { data: dishes, isLoading, isError } = useDishes({ onlyActive: true })
 
   const grouped = useMemo(() => {
     const map = new Map<DishCategory, Dish[]>()

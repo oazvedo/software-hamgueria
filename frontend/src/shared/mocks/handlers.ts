@@ -177,7 +177,9 @@ export const handlers = [
   http.get('/api/health/details', () =>
     HttpResponse.json({ status: 'Healthy', database: 'Healthy', queue: 'Healthy', pendingEvents: 0 }),
   ),
-  http.get('/api/dish', () => HttpResponse.json(mockDishes)),
+  http.get('/api/dish', ({ request }) =>
+    HttpResponse.json(new URL(request.url).searchParams.get('active') === 'true' ? mockDishes.filter((d) => d.isActive) : mockDishes),
+  ),
   http.get('/api/table', () => HttpResponse.json(mockTables)),
 
   http.post('/api/auth/login', async ({ request }) => {
