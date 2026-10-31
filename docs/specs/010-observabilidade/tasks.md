@@ -8,3 +8,4 @@
 ## Backlog
 - Telemetria do navegador (Web Vitals, erros de JS) e propagação de `traceparent` do front para a API.
 - Alertas (ex.: `hamgueria.order_events.pending` alto por mais de 5 min) quando houver backend de métricas com alerta.
+- Teste do descarte por `nack` (`reason=nack`): o broker real só recusa em casos raros (fila em limite com `reject-publish`); fica para quando houver um broker de teste configurável.

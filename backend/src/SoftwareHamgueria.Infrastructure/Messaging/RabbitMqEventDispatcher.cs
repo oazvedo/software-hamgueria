@@ -104,6 +104,12 @@ public sealed class RabbitMqEventDispatcher(
                     timeout.Token);
                 HamgueriaTelemetry.OrderEventsPublished.Add(1);
             }
+            catch (Exception ex) when (ex is not PublishException)
+            {
+                // Connection lost or timeout: the event stays queued and the loop reconnects; the span says it failed.
+                activity?.SetStatus(System.Diagnostics.ActivityStatusCode.Error, ex.GetType().Name);
+                throw;
+            }
             catch (PublishException ex)
             {
                 // The broker refused this event for good (nack): retrying would block every event behind it.
