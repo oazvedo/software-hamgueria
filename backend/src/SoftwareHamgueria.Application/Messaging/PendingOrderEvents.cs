@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using SoftwareHamgueria.Application.Telemetry;
 
 namespace SoftwareHamgueria.Application.Messaging;
 
@@ -23,6 +24,8 @@ public sealed class PendingOrderEvents
         ArgumentOutOfRangeException.ThrowIfLessThan(capacity, 1);
         _logger = logger;
         _capacity = capacity;
+        HamgueriaTelemetry.Meter.CreateObservableGauge(
+            "hamgueria.order_events.pending", () => Count, unit: "{event}", description: "Eventos esperando envio ao RabbitMQ");
     }
 
     public int Count
@@ -40,9 +43,12 @@ public sealed class PendingOrderEvents
         }
 
         if (dropped is not null)
+        {
+            HamgueriaTelemetry.OrderEventsDropped.Add(1, new KeyValuePair<string, object?>("reason", "queue_full"));
             _logger.LogWarning(
                 "Order event queue full ({Capacity}): dropped {RoutingKey} for order {OrderId}",
                 _capacity, dropped.RoutingKey, dropped.Message);
+        }
 
         // Wake the sender; one pending release is enough, it drains everything it finds.
         if (_signal.CurrentCount == 0) _signal.Release();
