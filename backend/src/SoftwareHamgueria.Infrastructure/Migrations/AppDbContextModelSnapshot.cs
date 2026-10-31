@@ -22,6 +22,66 @@ namespace SoftwareHamgueria.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("SoftwareHamgueria.Domain.Entities.AuditEntry", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("AuthorName")
+                        .HasColumnType("text")
+                        .HasColumnName("author_name");
+
+                    b.PrimitiveCollection<string[]>("ChangedFields")
+                        .IsRequired()
+                        .HasColumnType("text[]")
+                        .HasColumnName("changed_fields");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("FrontendUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("frontend_url");
+
+                    b.Property<string>("NewValues")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("new_values");
+
+                    b.Property<string>("OldValues")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("old_values");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("operation");
+
+                    b.Property<string>("RequestId")
+                        .HasColumnType("text")
+                        .HasColumnName("request_id");
+
+                    b.Property<string>("RowId")
+                        .HasColumnType("text")
+                        .HasColumnName("row_id");
+
+                    b.Property<string>("TableName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("table_name");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("change_log", "audit", t =>
+                        {
+                            t.ExcludeFromMigrations();
+                        });
+                });
+
             modelBuilder.Entity("SoftwareHamgueria.Domain.Entities.ComandaClosure", b =>
                 {
                     b.Property<Guid>("Id")

@@ -43,3 +43,4 @@ Formato MADR enxuto ([template.md](template.md)). Para criar um novo, use a skil
 | [0024](0024-segredos-por-variaveis-de-ambiente-validados-no-startup.md) | Segredos por variáveis de ambiente, validados na inicialização | Aceito |
 | [0025](0025-eventos-de-pedido-com-fila-de-espera-em-memoria.md) | Eventos de pedido com fila de espera em memória e envio em segundo plano | Aceito |
 | [0026](0026-fluxo-autonomo-sem-aprovacoes.md) | Fluxo autônomo: specs e ADRs sem paradas de aprovação | Aceito |
+| [0027](0027-auditoria-por-triggers-no-postgres.md) | Auditoria do banco por triggers no PostgreSQL, com autor e origem | Aceito |

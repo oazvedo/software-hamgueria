@@ -5,7 +5,9 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using SoftwareHamgueria.API.Audit;
 using SoftwareHamgueria.API.Errors;
+using SoftwareHamgueria.Application.Audit;
 using SoftwareHamgueria.API.Health;
 using SoftwareHamgueria.API.Filters;
 using SoftwareHamgueria.Application;
@@ -76,6 +78,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
+// API-only adapter: the audit trail's author and screen come from the request (ADR 0027).
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IAuditContext, HttpAuditContext>();
 
 var app = builder.Build();
 

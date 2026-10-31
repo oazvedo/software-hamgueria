@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { env } from '@/shared/config/env'
 import { getToken } from '@/shared/auth/authToken'
+import { auditHeaders } from '@/shared/api/auditHeaders'
 
 export const httpClient = axios.create({
   baseURL: env.apiBaseUrl,
@@ -11,5 +12,6 @@ export const httpClient = axios.create({
 httpClient.interceptors.request.use((config) => {
   const token = getToken()
   if (token) config.headers.Authorization = `Bearer ${token}`
+  for (const [name, value] of Object.entries(auditHeaders())) config.headers[name] = value
   return config
 })
