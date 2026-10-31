@@ -94,7 +94,8 @@
 <!-- Achados da simplify e da revisão que ficam fora do escopo desta spec. Um item por linha, com o motivo. -->
 - Job de CI que roda `docker build` dos dois Dockerfiles (risco do plan: imagem quebrada só aparece no deploy).
 - Fixar as imagens base por digest (`aspnet:10.0`, `caddy:2-alpine`, `postgres:16-alpine`).
-- `RabbitMqPublisher` conecta no construtor (singleton): depois de `docker compose restart` ou de um reboot da EC2,
+- ~~`RabbitMqPublisher` conecta no construtor (singleton): depois de `docker compose restart` ou de um reboot da EC2,
   a API pode voltar antes da fila e as rotas de pedido respondem 500 até a fila subir (achado no `smoke.sh`). O guia
-  manda rodar `up -d --wait`. Correção: conexão preguiçosa com retry, ou a fila no `/api/health`. ADR 0010.
+  manda rodar `up -d --wait`. Correção: conexão preguiçosa com retry, ou a fila no `/api/health`. ADR 0010.~~
+  Resolvido pela [spec 005](../005-fila-resiliente/spec.md) (ADR 0025).
 - `npm ci` local avisa de install scripts bloqueados (`npm install-scripts ls`): revisar quais pacotes precisam.

@@ -19,6 +19,7 @@ Para criar: skill `spec`. Para implementar: skill `implement-task`. Templates em
 | 002 | [Base de testes automatizados](002-base-de-testes/spec.md) | Concluída |
 | 003 | [Validação de entrada e erros padronizados](003-validacao-problemdetails/spec.md) | Concluída |
 | 004 | [Preparar o Hamgueria para rodar num servidor na nuvem](004-deploy-aws-ec2/spec.md) | Concluída |
+| 005 | [Pedidos funcionam com a fila de mensagens fora do ar](005-fila-resiliente/spec.md) | Concluída |
 
 ## Candidatos a spec
 Dívidas e ideias encontradas na adoção do fluxo (2026-10-31). Cada item vira uma spec, entra numa spec existente ou é

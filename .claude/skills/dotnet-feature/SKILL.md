@@ -144,6 +144,7 @@ Regras: validar → carregar → regra de negócio → método da entidade → *
 
 ### 8. Eventos (só se a spec pedir)
 Injete `IOrderEventPublisher` e publique **depois** da escrita: `publisher.Publish("order.created", order.Id.ToString())`.
+`Publish` só enfileira; o envio ao RabbitMQ é em segundo plano e nunca derruba a requisição (ADR 0025).
 Routing key `<agregado>.<evento-no-passado>` no exchange `hamgueria.orders` (ADR 0010). Outro agregado com eventos
 próprios = nova porta em `Application/Messaging/` + implementação em `Infrastructure/Messaging/`, decidido no `plan.md`.
 
