@@ -137,6 +137,7 @@ const titles = {
   notFound: 'Não encontramos o que você pediu.',
   unauthorized: 'Faça login na cozinha para continuar.',
   invalidCredentials: 'Usuário ou senha inválidos.',
+  forbidden: 'Seu login não tem permissão para isso.',
 } as const
 
 function problem(body: Omit<ApiProblem, 'traceId'>) {
@@ -156,6 +157,8 @@ export const problems = {
   unauthorized: (title: string = titles.unauthorized) =>
     problem({ type: problemTypes.unauthorized, title, status: 401 }),
   invalidCredentials: () => problems.unauthorized(titles.invalidCredentials),
+  forbidden: (detail: string) =>
+    problem({ type: problemTypes.forbidden, title: titles.forbidden, status: 403, detail }),
 }
 
 export const hasErrors = (errors: Errors) => Object.keys(errors).length > 0

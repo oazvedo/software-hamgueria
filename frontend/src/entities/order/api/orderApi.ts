@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { httpClient } from '@/shared/api/httpClient'
 import { queryKeys } from '@/shared/api/queryKeys'
+import { ownerTokenOf, saveOwnerToken } from '@/entities/order/model/ownerTokens'
 import type { CreateOrderPayload, OrderStatus } from '@/entities/order/model/types'
 
 export interface OrderItemResponse {
@@ -21,10 +22,13 @@ export interface OrderResponse {
   comandaClosed: boolean
   createdAt: string
   updatedAt: string
+  /** Only in the response that creates the order (ADR 0030). */
+  ownerToken?: string
 }
 
 export async function createOrder(payload: CreateOrderPayload): Promise<OrderResponse> {
   const { data } = await httpClient.post<OrderResponse>('/api/order', payload)
+  if (data.ownerToken) saveOwnerToken(data.id, data.ownerToken)
   return data
 }
 
@@ -58,8 +62,10 @@ export async function updateOrderStatus(id: string, status: OrderStatus): Promis
   })
 }
 
+/** The kitchen's token goes by the client; a customer also sends the order's owner token (spec 012). */
 export async function cancelOrder(id: string): Promise<void> {
-  await httpClient.patch(`/api/order/${id}/cancel`)
+  const token = ownerTokenOf(id)
+  await httpClient.patch(`/api/order/${id}/cancel`, undefined, token ? { headers: { 'X-Order-Token': token } } : undefined)
 }
 
 export async function closeComanda(tableId: string, customerName: string): Promise<void> {
