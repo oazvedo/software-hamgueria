@@ -33,7 +33,9 @@ jobs:
 
       # No package with a known vulnerability, direct or transitive (spec 018).
       - name: Dependências sem vulnerabilidade conhecida
-        run: sh scripts/ci/nuget-vulnerabilities.sh
+        run: |
+          sh scripts/ci/nuget-vulnerabilities.test.sh
+          sh scripts/ci/nuget-vulnerabilities.sh
 
   frontend:
     runs-on: ubuntu-latest
