@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Highlight, themes } from 'prism-react-renderer'
 import { Send, Trash2 } from 'lucide-react'
-import { buildOrderJson, useOrderStore } from '@/entities/order'
+import { buildOrderJson, MAX_ITEM_QUANTITY, useOrderStore } from '@/entities/order'
 import { CheckoutDialog } from '@/features/submit-order'
 import { TableSelect } from '@/features/select-table'
 import { QuantityStepper } from '@/shared/ui/molecules'
@@ -70,7 +70,11 @@ export function OrderJsonPanel() {
                   <span className="font-mono text-xs text-muted-foreground">
                     {formatCurrency(item.price * item.quantity)}
                   </span>
-                  <QuantityStepper value={item.quantity} onChange={(q) => setQuantity(item.dishId, q)} />
+                  <QuantityStepper
+                    value={item.quantity}
+                    max={MAX_ITEM_QUANTITY}
+                    onChange={(q) => setQuantity(item.dishId, q)}
+                  />
                 </div>
               </div>
               <Input

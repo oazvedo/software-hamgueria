@@ -1,4 +1,4 @@
-export { useOrderStore } from '@/entities/order/model/orderStore'
+export { useOrderStore, MAX_ITEM_QUANTITY } from '@/entities/order/model/orderStore'
 export { buildOrderJson, buildOrderPayload } from '@/entities/order/model/orderJson'
 export {
   createOrder,

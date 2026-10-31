@@ -33,4 +33,22 @@ describe('painel JSON', () => {
 
     expect(jsonText()).toContain('"obs": "sem cebola"')
   })
+
+  it('003/CA-03: o botão Aumentar para em 20 unidades', async () => {
+    act(() => useOrderStore.getState().addDish(burger))
+    act(() => useOrderStore.getState().setQuantity(burger.id, 19))
+    renderWithProviders(<OrderJsonPanel />)
+    const more = screen.getByRole('button', { name: 'Aumentar' }) as HTMLButtonElement
+
+    await userEvent.click(more)
+
+    expect(jsonText()).toContain('"quantity": 20')
+    expect(more.disabled).toBe(true)
+  })
+
+  it('003/CA-03: adicionar o mesmo prato pelo cardápio não passa de 20', () => {
+    for (let i = 0; i < 25; i++) act(() => useOrderStore.getState().addDish(burger))
+
+    expect(useOrderStore.getState().items[0].quantity).toBe(20)
+  })
 })

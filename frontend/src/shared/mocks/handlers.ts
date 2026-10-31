@@ -1,5 +1,15 @@
 import { http, HttpResponse } from 'msw'
 import { mockDishes, mockTables } from '@/shared/mocks/data'
+import {
+  hasErrors,
+  problems,
+  validateComanda,
+  validateCreateOrder,
+  validateDish,
+  validateTable,
+  validateUpdateOrder,
+  type ItemInput,
+} from '@/shared/mocks/validation'
 
 type MockStatus = 'Created' | 'Draft' | 'Cancelled' | 'Done'
 
@@ -70,6 +80,36 @@ function isAuthed(request: Request): boolean {
   return request.headers.get('Authorization') === `Bearer ${MOCK_TOKEN}`
 }
 
+// Same order of checks as OrderService: dish exists, then dish is active (spec 003, CA-09).
+function resolveItems(items: ItemInput[]) {
+  const resolved: StoredOrder['items'] = []
+  for (const it of items) {
+    const dish = mockDishes.find((d) => d.id === it.dishId)
+    if (!dish) return problems.notFound('O prato informado não existe.')
+    if (!dish.isActive) return problems.businessRule(`O prato ${dish.name} não está disponível.`)
+    const existing = resolved.find((r) => r.dishId === dish.id)
+    if (existing) {
+      // Repeated dishes merge into one item (001/RN-04).
+      existing.quantity += it.quantity ?? 0
+      if (it.notes) existing.notes = it.notes
+    } else {
+      resolved.push({ dishId: dish.id, dishName: dish.name, price: dish.price, quantity: it.quantity ?? 0, notes: it.notes ?? '' })
+    }
+  }
+  return resolved
+}
+
+// Kitchen-only dish and table writes: validated like the server, echoed back (no screen keeps them).
+function echoDish(id: string, body: Record<string, unknown>) {
+  const now = new Date().toISOString()
+  return { ...body, id, name: String(body.name).trim(), isActive: true, createdAt: now, updatedAt: now }
+}
+
+function echoTable(id: string, body: { tableName?: string }) {
+  const now = new Date().toISOString()
+  return { id, tableName: String(body.tableName).trim(), isActive: true, createdAt: now, updatedAt: now }
+}
+
 export const handlers = [
   http.get('/api/dish', () => HttpResponse.json(mockDishes)),
   http.get('/api/table', () => HttpResponse.json(mockTables)),
@@ -85,32 +125,57 @@ export const handlers = [
         expiresAt: new Date(Date.now() + 8 * 3600_000).toISOString(),
       })
     }
-    return new HttpResponse(null, { status: 401 })
+    return problems.invalidCredentials()
+  }),
+
+  http.post('/api/dish', async ({ request }) => {
+    if (!isAuthed(request)) return problems.unauthorized()
+    const body = (await request.json()) as Record<string, unknown>
+    const errors = validateDish(body)
+    if (hasErrors(errors)) return problems.validation(errors)
+    return HttpResponse.json(echoDish(crypto.randomUUID(), body), { status: 201 })
+  }),
+
+  http.put('/api/dish/:id', async ({ request, params }) => {
+    if (!isAuthed(request)) return problems.unauthorized()
+    const body = (await request.json()) as Record<string, unknown>
+    const errors = validateDish(body)
+    if (hasErrors(errors)) return problems.validation(errors)
+    if (!mockDishes.some((d) => d.id === params.id)) return problems.notFound('Prato não encontrado.')
+    return HttpResponse.json(echoDish(String(params.id), body))
+  }),
+
+  http.post('/api/table', async ({ request }) => {
+    if (!isAuthed(request)) return problems.unauthorized()
+    const body = (await request.json()) as { tableName?: string }
+    const errors = validateTable(body)
+    if (hasErrors(errors)) return problems.validation(errors)
+    return HttpResponse.json(echoTable(crypto.randomUUID(), body), { status: 201 })
+  }),
+
+  http.put('/api/table/:id', async ({ request, params }) => {
+    if (!isAuthed(request)) return problems.unauthorized()
+    const body = (await request.json()) as { tableName?: string }
+    const errors = validateTable(body)
+    if (hasErrors(errors)) return problems.validation(errors)
+    if (!mockTables.some((t) => t.id === params.id)) return problems.notFound('Mesa não encontrada.')
+    return HttpResponse.json(echoTable(String(params.id), body))
   }),
 
   http.post('/api/order', async ({ request }) => {
-    const body = (await request.json()) as {
-      tableId: string
-      customerName: string
-      items: Array<{ dishId: string; quantity: number; notes?: string }>
-    }
+    const body = (await request.json()) as { tableId: string; customerName: string; items: ItemInput[] }
+    const errors = validateCreateOrder(body)
+    if (hasErrors(errors)) return problems.validation(errors)
     const table = mockTables.find((t) => t.id === body.tableId)
-    const items = body.items.map((it) => {
-      const dish = mockDishes.find((d) => d.id === it.dishId)
-      return {
-        dishId: it.dishId,
-        dishName: dish?.name ?? 'Item desconhecido',
-        price: dish?.price ?? 0,
-        quantity: it.quantity,
-        notes: it.notes ?? '',
-      }
-    })
+    if (!table) return problems.notFound('A mesa informada não existe.')
+    const items = resolveItems(body.items)
+    if (!Array.isArray(items)) return items
     const now = new Date().toISOString()
     const order: StoredOrder = {
       id: crypto.randomUUID(),
       tableId: body.tableId,
-      tableName: table?.tableName ?? 'Mesa desconhecida',
-      customerName: body.customerName,
+      tableName: table.tableName,
+      customerName: body.customerName.trim(),
       items,
       status: 'Created',
       createdAt: now,
@@ -128,25 +193,26 @@ export const handlers = [
       tableId: string
       customerName: string
     }
-    if (!tableId || !customerName?.trim()) return new HttpResponse(null, { status: 400 })
+    const errors = validateComanda('tableId', 'customerName', tableId, customerName)
+    if (hasErrors(errors)) return problems.validation(errors)
     const closures = loadClosures()
-    closures[closureKey(tableId, customerName)] = new Date().toISOString()
+    closures[closureKey(tableId, customerName.trim())] = new Date().toISOString()
     saveClosures(closures)
     return new HttpResponse(null, { status: 204 })
   }),
 
   // Kitchen board — requires the admin token.
   http.get('/api/order', ({ request }) => {
-    if (!isAuthed(request)) return new HttpResponse(null, { status: 401 })
+    if (!isAuthed(request)) return problems.unauthorized()
     const closures = loadClosures()
     return HttpResponse.json(loadOrders().map((o) => withClosed(o, closures)))
   }),
 
   http.patch('/api/order/:id/status', async ({ request, params }) => {
-    if (!isAuthed(request)) return new HttpResponse(null, { status: 401 })
+    if (!isAuthed(request)) return problems.unauthorized()
     const list = loadOrders()
     const order = list.find((o) => o.id === params.id)
-    if (!order) return new HttpResponse(null, { status: 404 })
+    if (!order) return problems.notFound('Pedido não encontrado.')
     order.status = (await request.json()) as MockStatus
     order.updatedAt = new Date().toISOString()
     saveOrders(list)
@@ -156,7 +222,7 @@ export const handlers = [
   http.patch('/api/order/:id/cancel', ({ params }) => {
     const list = loadOrders()
     const order = list.find((o) => o.id === params.id)
-    if (!order) return new HttpResponse(null, { status: 404 })
+    if (!order) return problems.notFound('Pedido não encontrado.')
     order.status = 'Cancelled'
     order.updatedAt = new Date().toISOString()
     saveOrders(list)
@@ -167,8 +233,10 @@ export const handlers = [
   http.get('/api/order/comanda', ({ request }) => {
     const url = new URL(request.url)
     const tableId = url.searchParams.get('tableId')
-    const customer = (url.searchParams.get('customer') ?? '').toLowerCase()
-    if (!tableId || !customer) return new HttpResponse(null, { status: 400 })
+    const rawCustomer = url.searchParams.get('customer') ?? ''
+    const errors = validateComanda('tableId', 'customer', tableId, rawCustomer)
+    if (hasErrors(errors)) return problems.validation(errors)
+    const customer = rawCustomer.toLowerCase()
     const closures = loadClosures()
     const list = loadOrders()
       .filter((o) => o.tableId === tableId && o.customerName.toLowerCase() === customer)
@@ -184,9 +252,25 @@ export const handlers = [
     return HttpResponse.json(list)
   }),
 
+  http.put('/api/order/:id', async ({ request, params }) => {
+    const body = (await request.json()) as { items: ItemInput[] }
+    const errors = validateUpdateOrder(body)
+    if (hasErrors(errors)) return problems.validation(errors)
+    const list = loadOrders()
+    const order = list.find((o) => o.id === params.id)
+    if (!order) return problems.notFound('Pedido não encontrado.')
+    const items = resolveItems(body.items)
+    if (!Array.isArray(items)) return items
+    order.items = items
+    order.status = 'Draft'
+    order.updatedAt = new Date().toISOString()
+    saveOrders(list)
+    return HttpResponse.json({ ...order, comandaClosed: false })
+  }),
+
   http.get('/api/order/:id', ({ params }) => {
     const order = loadOrders().find((o) => o.id === params.id)
-    if (!order) return new HttpResponse(null, { status: 404 })
+    if (!order) return problems.notFound()
     return HttpResponse.json(withClosed(order))
   }),
 ]

@@ -4,6 +4,7 @@ import { Plus, Send } from 'lucide-react'
 import { useOrderStore, useTableComandas } from '@/entities/order'
 import { useTables } from '@/entities/table'
 import { useSubmitOrder } from '@/features/submit-order/model/useSubmitOrder'
+import { fieldErrors } from '@/shared/api/problem'
 import {
   Button,
   Dialog,
@@ -65,6 +66,17 @@ export function CheckoutDialog({
   const creatingNew = choice === NEW || existing.length === 0
   const finalName = creatingNew ? newName.trim() : choice
   const tableName = tables?.find((t) => t.id === tableId)?.tableName ?? tableId
+
+  // Server refusals per field (spec 003, CA-11): the name under its input, everything else listed by dish.
+  const errors = fieldErrors(submit.error)
+  const nameError = creatingNew ? errors.customerName : undefined
+  const otherErrors = Object.entries(errors)
+    .filter(([field]) => field !== 'customerName' || !creatingNew)
+    .map(([field, message]) => {
+      const index = /^items\[(\d+)\]/.exec(field)?.[1]
+      const dish = index === undefined ? undefined : items[Number(index)]?.name
+      return dish ? `${dish}: ${message}` : message
+    })
 
   const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
   const preview = {
@@ -139,7 +151,12 @@ export function CheckoutDialog({
                   </span>
                   <Input
                     value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
+                    onChange={(e) => {
+                      setNewName(e.target.value)
+                      if (submit.isError) submit.reset()
+                    }}
+                    aria-invalid={nameError ? true : undefined}
+                    aria-describedby={nameError ? 'checkout-name-error' : undefined}
                     placeholder="ex.: joão"
                     maxLength={60}
                     autoFocus
@@ -147,9 +164,22 @@ export function CheckoutDialog({
                       if (e.key === 'Enter' && finalName) handleConfirm()
                     }}
                   />
+                  {nameError && (
+                    <span id="checkout-name-error" className="text-xs text-destructive">
+                      {nameError}
+                    </span>
+                  )}
                 </label>
               )}
             </div>
+          )}
+
+          {otherErrors.length > 0 && (
+            <ul role="alert" className="flex flex-col gap-1 rounded-lg border border-destructive/40 p-3 text-xs text-destructive">
+              {otherErrors.map((message) => (
+                <li key={message}>{message}</li>
+              ))}
+            </ul>
           )}
 
           <div className="flex justify-end gap-2">

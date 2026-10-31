@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { closeComanda } from '@/entities/order'
+import { problemMessage } from '@/shared/api/problem'
 import { queryKeys } from '@/shared/api/queryKeys'
 
 export function useCloseComanda() {
@@ -16,6 +17,6 @@ export function useCloseComanda() {
       queryClient.invalidateQueries({ queryKey: queryKeys.allOrders })
       toast.success('Comanda fechada.')
     },
-    onError: () => toast.error('Não foi possível fechar a comanda.'),
+    onError: (error) => toast.error(problemMessage(error, 'Não foi possível fechar a comanda.')),
   })
 }
