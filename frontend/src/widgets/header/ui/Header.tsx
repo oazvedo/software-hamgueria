@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useOrderStore } from '@/entities/order'
+import { ThemeToggle } from '@/shared/ui/molecules'
 
 export function Header() {
   const tableId = useOrderStore((s) => s.tableId)
@@ -40,6 +41,7 @@ export function Header() {
               </Link>
             </>
           )}
+          <ThemeToggle />
         </nav>
       </div>
     </header>

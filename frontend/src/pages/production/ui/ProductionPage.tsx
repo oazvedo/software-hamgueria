@@ -7,6 +7,7 @@ import { AuditLog } from '@/widgets/audit-log'
 import { ItemNote, StatusBadge, isComandaClosed, isTerminal, orderTotal, useAllOrders } from '@/entities/order'
 import type { OrderResponse } from '@/entities/order'
 import { DataText } from '@/shared/ui/atoms'
+import { ThemeToggle } from '@/shared/ui/molecules'
 import { Button, Spinner } from '@/shared/ui/shadcn'
 import { formatCurrency } from '@/shared/lib/formatCurrency'
 import { cn } from '@/shared/lib/cn'
@@ -21,12 +22,15 @@ function KitchenTopBar({ onLogout }: { onLogout?: () => void }) {
           {/* EXCEÇÃO ao ruido-scan/code-crumb: rótulo de seção em forma de comentário, identidade dev do produto (spec 006, RN-02) */}
           <span className="font-mono text-xs font-normal text-muted-foreground">// cozinha</span>
         </div>
-        {onLogout && (
-          <Button size="sm" variant="ghost" onClick={onLogout}>
-            <LogOut />
-            Sair
-          </Button>
-        )}
+        <div className="flex items-center gap-1">
+          <ThemeToggle />
+          {onLogout && (
+            <Button size="sm" variant="ghost" onClick={onLogout}>
+              <LogOut />
+              Sair
+            </Button>
+          )}
+        </div>
       </div>
     </header>
   )

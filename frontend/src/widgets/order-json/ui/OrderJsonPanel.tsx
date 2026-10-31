@@ -5,11 +5,13 @@ import { buildOrderJson, MAX_ITEM_QUANTITY, useOrderStore } from '@/entities/ord
 import { CheckoutDialog } from '@/features/submit-order'
 import { TableSelect } from '@/features/select-table'
 import { WindowDots } from '@/shared/ui/atoms'
+import { useThemeStore } from '@/shared/theme'
 import { QuantityStepper } from '@/shared/ui/molecules'
 import { Button, Input } from '@/shared/ui/shadcn'
 import { formatCurrency } from '@/shared/lib/formatCurrency'
 
 export function OrderJsonPanel() {
+  const theme = useThemeStore((s) => s.theme)
   const tableId = useOrderStore((s) => s.tableId)
   const customerName = useOrderStore((s) => s.customerName)
   const items = useOrderStore((s) => s.items)
@@ -40,7 +42,7 @@ export function OrderJsonPanel() {
 
       {/* live json */}
       <div className="flex-1 overflow-auto p-3 font-mono text-sm">
-        <Highlight theme={themes.vsDark} code={code} language="json">
+        <Highlight theme={theme === 'dark' ? themes.vsDark : themes.vsLight} code={code} language="json">
           {({ style, tokens, getLineProps, getTokenProps }) => (
             <pre style={{ ...style, background: 'transparent', margin: 0 }}>
               {tokens.map((line, i) => (

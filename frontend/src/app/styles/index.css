@@ -31,7 +31,8 @@
   --ring: oklch(0.705 0.015 286.067);
 
   /* Rare emerald brand accent */
-  --brand: oklch(0.62 0.13 163);
+  /* L 0.52: 5.0:1 on white for small text (spec 014; 0.62 gave 3.4:1) */
+  --brand: oklch(0.52 0.12 163);
   /* Terminal window dots (CheckoutDialog, OrderJsonPanel): same in both themes, like a real window (spec 006). */
   --window-close: oklch(0.693 0.197 26.7);
   --window-minimize: oklch(0.838 0.162 81.1);
