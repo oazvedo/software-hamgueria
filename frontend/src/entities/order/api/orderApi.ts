@@ -62,6 +62,13 @@ export async function updateOrderStatus(id: string, status: OrderStatus): Promis
   })
 }
 
+/** Replaces the items of an order this device created (spec 015); the API checks the owner token (ADR 0030). */
+export async function updateOrder(id: string, items: Array<{ dishId: string; quantity: number; notes?: string }>): Promise<OrderResponse> {
+  const token = ownerTokenOf(id)
+  const { data } = await httpClient.put<OrderResponse>(`/api/order/${id}`, { items }, token ? { headers: { 'X-Order-Token': token } } : undefined)
+  return data
+}
+
 /** The kitchen's token goes by the client; a customer also sends the order's owner token (spec 012). */
 export async function cancelOrder(id: string): Promise<void> {
   const token = ownerTokenOf(id)

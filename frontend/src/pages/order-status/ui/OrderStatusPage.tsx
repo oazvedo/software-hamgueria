@@ -1,6 +1,7 @@
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, Rocket, Users, X } from 'lucide-react'
 import { Header } from '@/widgets/header'
+import { OwnOrderActions } from '@/features/change-own-order'
 import { ItemNote, OrderPipeline, StatusBadge, isTerminal, useOrder } from '@/entities/order'
 import { Alert, AlertDescription, AlertTitle, Button, Spinner } from '@/shared/ui/shadcn'
 import { formatCurrency } from '@/shared/lib/formatCurrency'
@@ -96,6 +97,8 @@ export function OrderStatusPage() {
                 Pedido servido. Deploy em produção concluído, bom apetite!
               </div>
             )}
+
+            <OwnOrderActions order={order} />
 
             <div className="flex flex-wrap justify-center gap-3">
               <Button asChild variant="secondary">

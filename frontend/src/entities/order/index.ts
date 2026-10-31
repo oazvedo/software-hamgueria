@@ -13,6 +13,7 @@ export {
   useAllOrders,
   updateOrderStatus,
   cancelOrder,
+  updateOrder,
   closeComanda,
   isComandaClosed,
 } from '@/entities/order/api/orderApi'
@@ -32,3 +33,4 @@ export { ItemNote } from '@/entities/order/ui/ItemNote'
 export { orderTotal } from '@/entities/order/model/orderTotal'
 export type { OrderItem, OrderDraft, CreateOrderPayload, OrderStatus } from '@/entities/order/model/types'
 export type { OrderResponse, OrderItemResponse } from '@/entities/order/api/orderApi'
+export { ownerTokenOf } from '@/entities/order/model/ownerTokens'
