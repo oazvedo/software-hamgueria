@@ -1,6 +1,6 @@
 # 0008. API REST com Controllers
 
-- **Status:** Aceito
+- **Status:** Substituído em parte por [0022](0022-erros-em-problemdetails-com-handler-global.md) (regra de erros)
 - **Data:** 2026-10-31 (retroativo)
 
 ## Contexto

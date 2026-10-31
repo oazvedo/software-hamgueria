@@ -5,7 +5,7 @@ description: Receita para criar ou alterar uma entidade, endpoint, service, repo
 
 # Skill: dotnet-feature
 
-Regras completas nos ADRs 0004 a 0010 e 0014. Esta skill é a **receita passo a passo**, escrita a partir do código
+Regras completas nos ADRs 0004 a 0010, 0014, 0021 (validação) e 0022 (erros). Esta skill é a **receita passo a passo**, escrita a partir do código
 que já existe. Os exemplos usam `Table`, o recurso mais simples; para outra entidade, troque o nome
 (código em inglês, ADR 0004). **Copie o padrão existente; não "melhore" a base sem um ADR.**
 
@@ -113,12 +113,13 @@ Um arquivo por DTO (`CreateTableDto.cs`, ...). Enums vão como o tipo do Domain;
 ### 7. Application: service
 `Application/Services/Interfaces/ITableService.cs` + `Application/Services/TableService.cs`:
 ```csharp
-public class TableService(ITableRepository repository) : ITableService
+public class TableService(ITableRepository repository, IValidator<UpdateTableDto> updateValidator) : ITableService
 {
     public async Task<TableResponseDto> UpdateAsync(Guid id, UpdateTableDto dto)
     {
-        var table = await repository.GetByIdAsync(id) ?? throw new KeyNotFoundException($"Table {id} not found.");
-        table.Update(dto.TableName);
+        await updateValidator.ValidateAndThrowAsync(dto);          // ADR 0021: valida antes de tocar no repositório
+        var table = await repository.GetByIdAsync(id) ?? throw new NotFoundException("Mesa não encontrada.");
+        table.Update(dto.TableName.Trim());
         await repository.UpdateAsync(table);
         return ToDto(table);
     }
@@ -132,8 +133,12 @@ public class TableService(ITableRepository repository) : ITableService
     private static TableResponseDto ToDto(Table t) => new(t.Id, t.TableName, t.IsActive, t.CreatedAt, t.UpdatedAt);
 }
 ```
-Regras: carregar → regra de negócio → método da entidade → **uma** escrita de repositório → (publicar evento) → DTO.
-- Não encontrado: `KeyNotFoundException`. Regra violada / entrada inválida: `InvalidOperationException` (ADR 0008).
+Regras: validar → carregar → regra de negócio → método da entidade → **uma** escrita de repositório → (publicar evento) → DTO.
+- Entrada inválida: validador FluentValidation em `Application/Validators/<Entidade>/<Dto>Validator.cs`, mensagens em
+  português com `WithName("<campo para o cliente>")`, limites de `Validators/Limits.cs` (ADR 0021).
+- Não encontrado: `NotFoundException`. Regra do restaurante violada: `BusinessRuleException`. Ambas de
+  `Application/Exceptions/`, com mensagem em português para o cliente. Nunca `KeyNotFoundException` nem
+  `InvalidOperationException` (o framework lança os mesmos tipos, ADR 0022).
 - Se a operação precisa gravar dois agregados juntos, **pare**: isso pede o ADR de Unit of Work (ADR 0006).
 - Registre no `ApplicationModule.cs`: `services.AddScoped<ITableService, TableService>();`
 
@@ -170,12 +175,13 @@ public class TableController(ITableService tableService) : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Disable(Guid id)
     {
-        try { await tableService.DisableAsync(id); return NoContent(); }
-        catch (KeyNotFoundException) { return NotFound(); }
+        await tableService.DisableAsync(id);   // sem try/catch: o handler global vira ProblemDetails (ADR 0022)
+        return NoContent();
     }
 }
 ```
-Nenhuma lógica no controller além de converter exceção em status. `[Authorize(Roles = "Admin")]` em toda ação que o
+Nenhuma lógica no controller e nenhum `try/catch`: o `GlobalExceptionHandler` (`API/Errors/`) converte as exceções
+em ProblemDetails (ADR 0022). Consulta que devolve `null` vira `NotFound()`. `[Authorize(Roles = "Admin")]` em toda ação que o
 `plan.md` marcou como Admin (ADR 0009). Sem `DELETE` (ADR 0008).
 
 ### 10. Contrato no frontend
@@ -194,6 +200,7 @@ Swagger (`/swagger`) ou pelo `SoftwareHamgueria.API.http`.
 - [ ] Porta `IXxxRepository` na Application; implementação + registro no `InfrastructureModule`
 - [ ] `XxxConfiguration` aplicada no `AppDbContext`; migration revisada
 - [ ] DTOs `record` + `ToDto` privado no service; service registrado no `ApplicationModule`
+- [ ] Validador por DTO de entrada, chamado no service antes do repositório; exceções de `Application/Exceptions/`
 - [ ] Uma escrita de repositório por operação; evento publicado depois da escrita (se houver)
 - [ ] Controller sem lógica; público/Admin conforme o `plan.md`; sem DELETE
 - [ ] Tipo + API + handler MSW no frontend

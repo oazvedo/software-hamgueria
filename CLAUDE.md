@@ -121,8 +121,9 @@ Ajustes conhecidos:
   Application; DI só em `ApplicationModule.cs` e `InfrastructureModule.cs` (ADR 0004). PostgreSQL + EF Core com uma
   `XxxConfiguration` por entidade, migrations aplicadas no startup + `DatabaseSeeder` (ADR 0005). Repositório
   persiste a própria escrita (ADR 0006). DTOs `record` com mapeamento manual (ADR 0007). Controllers em
-  `/api/<entidade-singular>`, sem DELETE, Swagger em `/swagger` (ADR 0008). JWT com papel `Admin` (ADR 0009).
-  Eventos de pedido no RabbitMQ (ADR 0010). Comanda = mesa + nome (ADR 0014).
+  `/api/<entidade-singular>`, sem DELETE, Swagger em `/swagger` (ADR 0008). Entrada validada com FluentValidation no
+  service (ADR 0021). Erros em ProblemDetails pelo handler global, sem `try/catch` no controller, com
+  `NotFoundException`/`BusinessRuleException` (ADR 0022). JWT com papel `Admin` (ADR 0009). Eventos de pedido no RabbitMQ (ADR 0010). Comanda = mesa + nome (ADR 0014).
 - **Frontend:** React + FSD + Atomic Design no `shared/ui` + shadcn/Tailwind (ADR 0011). TanStack Query para estado
   do servidor, Zustand para estado do cliente (ADR 0012). MSW ligado por padrão; todo endpoint novo tem handler (ADR 0013).
 - **Testes (ADR 0016):** a verificação de toda task é o teste da parte tocada, não só o build. Servidor: xUnit v3 +
