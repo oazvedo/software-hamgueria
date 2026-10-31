@@ -41,3 +41,15 @@ test('006/CA-01: a página se declara em português do Brasil', async ({ page })
   await page.goto('/')
   await expect(page.locator('html')).toHaveAttribute('lang', 'pt-BR')
 })
+
+test('014/CA-02, CA-04: o tema escolhido vale já na primeira pintura da próxima visita', async ({ page }) => {
+  await page.goto('/')
+  const html = page.locator('html')
+  const startsDark = (await html.getAttribute('class'))?.includes('dark') ?? false
+
+  await page.getByRole('button', { name: startsDark ? 'Mudar para o tema claro' : 'Mudar para o tema escuro' }).click()
+  await page.reload()
+
+  // The inline script in index.html applies the saved choice before React mounts.
+  await expect(html).toHaveClass(startsDark ? /^(?!.*\bdark\b)/ : /\bdark\b/)
+})

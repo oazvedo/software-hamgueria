@@ -6,9 +6,10 @@ import { create } from 'zustand'
 export type Theme = 'light' | 'dark'
 export const THEME_STORAGE_KEY = 'hamgueria-theme'
 
-const darkQuery = () =>
+// Same rule as the inline script in index.html: light only when the system asks for light; dark otherwise.
+const lightQuery = () =>
   typeof window !== 'undefined' && typeof window.matchMedia === 'function'
-    ? window.matchMedia('(prefers-color-scheme: dark)')
+    ? window.matchMedia('(prefers-color-scheme: light)')
     : undefined
 
 function storedTheme(): Theme | undefined {
@@ -20,7 +21,7 @@ function storedTheme(): Theme | undefined {
   }
 }
 
-const systemTheme = (): Theme => (darkQuery()?.matches ?? true ? 'dark' : 'light')
+const systemTheme = (): Theme => (lightQuery()?.matches ? 'light' : 'dark')
 
 export function applyTheme(theme: Theme): void {
   const root = document.documentElement
@@ -52,11 +53,11 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
 
 /** Follows the system theme while the person has not picked one. Returns the unsubscribe. */
 export function followSystemTheme(): () => void {
-  const query = darkQuery()
+  const query = lightQuery()
   if (!query) return () => {}
   const onChange = (e: MediaQueryListEvent) => {
     if (useThemeStore.getState().chosen) return
-    const theme: Theme = e.matches ? 'dark' : 'light'
+    const theme: Theme = e.matches ? 'light' : 'dark'
     applyTheme(theme)
     useThemeStore.setState({ theme })
   }
