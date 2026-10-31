@@ -1,6 +1,6 @@
 # 0002. Fluxo spec-driven com IA
 
-- **Status:** Aceito
+- **Status:** Substituído em parte por [0026](0026-fluxo-autonomo-sem-aprovacoes.md) (paradas de aprovação)
 - **Data:** 2026-10-31
 
 ## Contexto

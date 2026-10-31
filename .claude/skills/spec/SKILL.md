@@ -5,7 +5,8 @@ description: Cria a especificação de uma feature no fluxo spec-driven (spec.md
 
 # Skill: spec
 
-O fluxo tem **3 fases**. Ao final de cada fase, **pare e peça revisão**. Só avance com a aprovação do usuário.
+O fluxo tem **3 fases**. **Modo autônomo (ADR 0026):** escreva as três em sequência, sem parar para aprovação; onde
+abaixo diz "Pare", registre a decisão tomada e siga. (Se o usuário pedir as aprovações de volta, volte a parar.)
 Se a spec já existir, retome a partir da primeira fase que ainda não foi aprovada.
 
 ## Fase 0: preparar

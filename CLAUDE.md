@@ -9,7 +9,10 @@ textos de interface em português (ADR 0004).
 1. Leia os ADRs em `docs/adr/` (índice em `docs/adr/README.md`). **Eles são lei.** Se uma tarefa exigir
    contrariar um ADR, pare e proponha um novo ADR (skill `adr`). Não desvie em silêncio.
 2. Trabalhe a partir de uma spec em `docs/specs/NNN-nome/`. Sem spec, crie uma (skill `spec`).
-3. **Implementação rápida** (skill `implement-task`): a spec inteira de uma vez, meta de até ~10 minutos, sem parar
+3. **Modo autônomo (ADR 0026, desde 2026-10-31):** escreva spec, plan e tasks e implemente na sequência, **sem parar
+   para aprovação**; ADR novo nasce `Aceito`; integre o próprio PR na `dev` com o CI verde. Pare só para `main`, deploy
+   real, dados fora do teste ou custo externo.
+4. **Implementação rápida** (skill `implement-task`): a spec inteira de uma vez, meta de até ~10 minutos, sem parar
    entre fases. Cada task com a sua verificação; suíte completa e relatório curto só no fim. Pare só se travar.
 
 > **Projeto brownfield.** O código anterior à metodologia está descrito na spec 001 (linha de base) e nos ADRs

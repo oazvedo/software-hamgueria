@@ -22,6 +22,19 @@ Para criar: skill `spec`. Para implementar: skill `implement-task`. Templates em
 | 005 | [Pedidos funcionam com a fila de mensagens fora do ar](005-fila-resiliente/spec.md) | Concluída |
 | 006 | [Telas limpas, com a identidade dev só onde ela ajuda](006-limpeza-ui/spec.md) | Concluída |
 
+## Lote autônomo (2026-10-31, ADR 0026)
+Ordem de execução. Cada item vira uma spec com PR próprio para a `dev`. O que não couber vai para "Candidatos".
+
+| # | Spec | O que resolve | Decisão já tomada |
+|---|---|---|---|
+| 007 | Comandas da mesa | A aba de comandas mostra só a comanda atual; uma mesa com várias comandas não as lista | Nav `~/comandas` lista todas as comandas da mesa (abertas e fechadas), com total e estado; `~/mesa` vira essa tela |
+| 008 | Cardápio sem emoji e mais fácil de ler | Ícones de categoria em emoji; cardápio longo, em pilha, mostra pratos inativos | Ícones `lucide-react`; navegação por categoria fixa; prato inativo some do cardápio |
+| 009 | Auditoria do banco | Ninguém sabe quem mudou um pedido, prato ou mesa, nem de onde | Triggers no PostgreSQL gravando antes/depois em JSONB, com autor (nome) e `frontend_url`; consulta para a cozinha |
+| 010 | Observabilidade | Sem traces nem métricas; erro em produção só pelo log | OpenTelemetry (traces, métricas, logs) via OTLP; Aspire Dashboard no compose |
+| 011 | Fila de jobs | Tarefas de fundo (limpeza, rotinas) não têm onde rodar com retry e painel | Hangfire com storage no Postgres (o equivalente .NET do BullMQ: retry, agendamento, painel); jobs de retenção da auditoria |
+| 012 | Pedido seguro | Qualquer um com o id cancela; status aceita qualquer transição | Cancelamento só pela comanda dona; máquina de estados de status |
+| 013 | CI de interface e imagens | `gate.sh` e os Dockerfiles não rodam no CI | Passo do gate no job `frontend`; job que constrói as duas imagens |
+
 ## Candidatos a spec
 Dívidas e ideias encontradas na adoção do fluxo (2026-10-31). Cada item vira uma spec, entra numa spec existente ou é
 descartado. Ao aprovar uma spec que resolve um item, remova-o daqui.
