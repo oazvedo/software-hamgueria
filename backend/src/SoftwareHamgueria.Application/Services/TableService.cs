@@ -1,23 +1,30 @@
+using FluentValidation;
 using SoftwareHamgueria.Application.DTOs.Table;
+using SoftwareHamgueria.Application.Exceptions;
 using SoftwareHamgueria.Application.Repositories;
 using SoftwareHamgueria.Application.Services.Interfaces;
 using SoftwareHamgueria.Domain.Entities;
 
 namespace SoftwareHamgueria.Application.Services;
 
-public class TableService(ITableRepository repository) : ITableService
+public class TableService(
+    ITableRepository repository,
+    IValidator<CreateTableDto> createValidator,
+    IValidator<UpdateTableDto> updateValidator) : ITableService
 {
     public async Task<TableResponseDto> CreateAsync(CreateTableDto dto)
     {
-        var table = new Table(dto.TableName);
+        await createValidator.ValidateAndThrowAsync(dto);
+        var table = new Table(dto.TableName.Trim());
         await repository.AddAsync(table);
         return ToDto(table);
     }
 
     public async Task<TableResponseDto> UpdateAsync(Guid id, UpdateTableDto dto)
     {
-        var table = await repository.GetByIdAsync(id) ?? throw new KeyNotFoundException($"Table {id} not found.");
-        table.Update(dto.TableName);
+        await updateValidator.ValidateAndThrowAsync(dto);
+        var table = await GetOrThrowAsync(id);
+        table.Update(dto.TableName.Trim());
         await repository.UpdateAsync(table);
         return ToDto(table);
     }
@@ -36,10 +43,13 @@ public class TableService(ITableRepository repository) : ITableService
 
     public async Task DisableAsync(Guid id)
     {
-        var table = await repository.GetByIdAsync(id) ?? throw new KeyNotFoundException($"Table {id} not found.");
+        var table = await GetOrThrowAsync(id);
         table.Disable();
         await repository.UpdateAsync(table);
     }
+
+    private async Task<Table> GetOrThrowAsync(Guid id) =>
+        await repository.GetByIdAsync(id) ?? throw new NotFoundException("Mesa não encontrada.");
 
     private static TableResponseDto ToDto(Table t) =>
         new(t.Id, t.TableName, t.IsActive, t.CreatedAt, t.UpdatedAt);

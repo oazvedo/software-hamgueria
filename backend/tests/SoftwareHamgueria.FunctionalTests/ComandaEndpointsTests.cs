@@ -73,5 +73,24 @@ public class ComandaEndpointsTests(HamgueriaApiFactory factory)
         var response = await _api.CloseComandaAsync(await _api.FirstTableIdAsync(), " ");
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(["Informe o nome da comanda."], (await _api.ReadProblemAsync(response)).Errors!["customerName"]);
+    }
+
+    [Fact(DisplayName = "003/CA-05: fechar comanda com nome de 61 caracteres é recusado")]
+    public async Task Close_NameTooLong_Returns400()
+    {
+        var response = await _api.CloseComandaAsync(await _api.FirstTableIdAsync(), new string('a', 61));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Contains("customerName", (await _api.ReadProblemAsync(response)).Errors!.Keys);
+    }
+
+    [Fact(DisplayName = "003/CA-05: consultar comanda sem nome é recusado no formato padrão")]
+    public async Task GetComanda_WithoutCustomer_Returns400()
+    {
+        var response = await _api.Http.GetAsync($"/api/order/comanda?tableId={await _api.FirstTableIdAsync()}&customer=");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Contains("customer", (await _api.ReadProblemAsync(response)).Errors!.Keys);
     }
 }

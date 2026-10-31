@@ -10,13 +10,14 @@ namespace SoftwareHamgueria.Application.Services;
 
 public class AuthService(IConfiguration configuration) : IAuthService
 {
-    public TokenResponseDto Login(LoginDto dto)
+    /// <returns>The token, or <c>null</c> when the credentials are wrong.</returns>
+    public TokenResponseDto? Login(LoginDto dto)
     {
         var adminUser = configuration["Auth:AdminUsername"] ?? "admin";
         var adminPassword = configuration["Auth:AdminPassword"] ?? "admin123";
 
         if (dto.Username != adminUser || dto.Password != adminPassword)
-            throw new UnauthorizedAccessException("Invalid credentials.");
+            return null;
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Auth:JwtSecret"]!));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

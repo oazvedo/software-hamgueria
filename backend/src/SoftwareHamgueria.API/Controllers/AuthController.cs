@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using SoftwareHamgueria.API.Errors;
 using SoftwareHamgueria.Application.DTOs.Auth;
 using SoftwareHamgueria.Application.Services.Interfaces;
 
@@ -11,14 +12,10 @@ public class AuthController(IAuthService authService) : ControllerBase
     [HttpPost("login")]
     public ActionResult<TokenResponseDto> Login([FromBody] LoginDto dto)
     {
-        try
-        {
-            var token = authService.Login(dto);
-            return Ok(token);
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return Unauthorized("Invalid credentials.");
-        }
+        var token = authService.Login(dto);
+        return token is null
+            ? Problem(statusCode: StatusCodes.Status401Unauthorized, type: ProblemTypes.Unauthorized,
+                title: ProblemTypes.InvalidCredentialsTitle)
+            : Ok(token);
     }
 }

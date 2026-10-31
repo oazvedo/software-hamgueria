@@ -47,6 +47,7 @@ public sealed class HamgueriaApiFactory : WebApplicationFactory<Program>, IAsync
         {
             services.RemoveAll<IOrderEventPublisher>();
             services.AddSingleton<IOrderEventPublisher>(Publisher);
+            services.AddControllers().AddApplicationPart(typeof(BoomController).Assembly);
         });
     }
 

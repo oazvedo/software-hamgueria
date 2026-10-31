@@ -1,8 +1,11 @@
+using FluentValidation;
 using NSubstitute;
 using SoftwareHamgueria.Application.DTOs.Order;
+using SoftwareHamgueria.Application.Exceptions;
 using SoftwareHamgueria.Application.Messaging;
 using SoftwareHamgueria.Application.Repositories;
 using SoftwareHamgueria.Application.Services;
+using SoftwareHamgueria.Application.Validators.Order;
 using SoftwareHamgueria.Domain.Entities;
 
 namespace SoftwareHamgueria.UnitTests.Application;
@@ -21,7 +24,9 @@ public class OrderServiceTests
 
     public OrderServiceTests()
     {
-        _sut = new OrderService(_orders, _dishes, _tables, _comandas, _publisher);
+        _sut = new OrderService(_orders, _dishes, _tables, _comandas, _publisher,
+            new CreateOrderDtoValidator(), new UpdateOrderDtoValidator(), new CloseComandaDtoValidator(),
+            new ComandaQueryValidator());
         _tables.GetByIdAsync(_table.Id).Returns(_table);
         _dishes.GetByIdAsync(_dish.Id).Returns(_dish);
 
@@ -68,7 +73,9 @@ public class OrderServiceTests
     [InlineData("   ")]
     public async Task CreateAsync_WithoutCustomerName_IsRejected(string customer)
     {
-        await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.CreateAsync(Request(customer)));
+        var ex = await Assert.ThrowsAsync<ValidationException>(() => _sut.CreateAsync(Request(customer)));
+
+        Assert.Equal("CustomerName", Assert.Single(ex.Errors).PropertyName);
 
         await AssertNothingSavedOrPublished();
     }
@@ -78,16 +85,18 @@ public class OrderServiceTests
     {
         _dish.Disable();
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.CreateAsync(Request()));
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _sut.CreateAsync(Request()));
 
-        Assert.Contains(_dish.Name, ex.Message);
+        Assert.Equal("O prato Burger Monolito não está disponível.", ex.Message);
         await AssertNothingSavedOrPublished();
     }
 
     [Fact(DisplayName = "001/CA-05: pedido com prato inexistente é recusado")]
     public async Task CreateAsync_UnknownDish_IsRejected()
     {
-        await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.CreateAsync(Request(dishId: Guid.NewGuid())));
+        var ex = await Assert.ThrowsAsync<NotFoundException>(() => _sut.CreateAsync(Request(dishId: Guid.NewGuid())));
+
+        Assert.Equal("O prato informado não existe.", ex.Message);
 
         await AssertNothingSavedOrPublished();
     }
@@ -95,7 +104,9 @@ public class OrderServiceTests
     [Fact(DisplayName = "001/RN-03: pedido para mesa inexistente é recusado")]
     public async Task CreateAsync_UnknownTable_IsRejected()
     {
-        await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.CreateAsync(Request(tableId: Guid.NewGuid())));
+        var ex = await Assert.ThrowsAsync<NotFoundException>(() => _sut.CreateAsync(Request(tableId: Guid.NewGuid())));
+
+        Assert.Equal("A mesa informada não existe.", ex.Message);
 
         await AssertNothingSavedOrPublished();
     }
@@ -132,8 +143,52 @@ public class OrderServiceTests
     [Fact(DisplayName = "001/CA-08: fechar comanda sem nome é recusado")]
     public async Task CloseComandaAsync_WithoutCustomerName_IsRejected()
     {
-        await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.CloseComandaAsync(_table.Id, " "));
+        await Assert.ThrowsAsync<ValidationException>(() => _sut.CloseComandaAsync(new CloseComandaDto(_table.Id, " ")));
 
         await _comandas.DidNotReceive().UpsertAsync(Arg.Any<Guid>(), Arg.Any<string>());
+    }
+
+    [Fact(DisplayName = "003/CA-02: pedido sem itens é recusado antes de ler o banco, sem gravar nem publicar")]
+    public async Task CreateAsync_WithoutItems_IsRejectedBeforeReading()
+    {
+        await Assert.ThrowsAsync<ValidationException>(() => _sut.CreateAsync(new CreateOrderDto(_table.Id, "Ana", [])));
+
+        await _tables.DidNotReceive().GetByIdAsync(Arg.Any<Guid>());
+        await AssertNothingSavedOrPublished();
+    }
+
+    [Fact(DisplayName = "003/CA-03: alterar pedido com quantidade 0 é recusado sem gravar")]
+    public async Task UpdateAsync_QuantityZero_IsRejected()
+    {
+        await Assert.ThrowsAsync<ValidationException>(() =>
+            _sut.UpdateAsync(Guid.NewGuid(), new UpdateOrderDto([new OrderItemDto(_dish.Id, 0)])));
+
+        await _orders.DidNotReceive().UpdateAsync(Arg.Any<Order>());
+        _publisher.DidNotReceive().Publish(Arg.Any<string>(), Arg.Any<string>());
+    }
+
+    [Fact(DisplayName = "003/CA-09: alterar pedido inexistente devolve não encontrado em português")]
+    public async Task UpdateAsync_UnknownOrder_IsNotFound()
+    {
+        _orders.GetByIdAsync(Arg.Any<Guid>()).Returns((Order?)null);
+
+        var ex = await Assert.ThrowsAsync<NotFoundException>(() =>
+            _sut.UpdateAsync(Guid.NewGuid(), new UpdateOrderDto([new OrderItemDto(_dish.Id, 1)])));
+
+        Assert.Equal("Pedido não encontrado.", ex.Message);
+    }
+
+    [Fact(DisplayName = "003/CA-05: consultar comanda sem nome é recusado")]
+    public async Task GetComandaAsync_WithoutCustomer_IsRejected()
+    {
+        await Assert.ThrowsAsync<ValidationException>(() => _sut.GetComandaAsync(_table.Id, " "));
+    }
+
+    [Fact(DisplayName = "003/CA-05: fechar comanda grava o nome sem espaços nas pontas")]
+    public async Task CloseComandaAsync_TrimsName()
+    {
+        await _sut.CloseComandaAsync(new CloseComandaDto(_table.Id, "  Ana  "));
+
+        await _comandas.Received().UpsertAsync(_table.Id, "Ana");
     }
 }
