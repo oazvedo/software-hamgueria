@@ -70,5 +70,3 @@ descartado. Ao aprovar uma spec que resolve um item, remova-o daqui.
 |---|---|---|
 | Preço como `decimal` | `Dish.Price` é `double`: erros de arredondamento em dinheiro. | 0007 |
 | Lint das fronteiras do FSD | A regra de imports do FSD não é verificada automaticamente. | 0011 |
-| Rotas com `React.lazy` | As 6 páginas são importadas estaticamente em `app/router/routes.tsx`; o cliente baixa a tela da cozinha. (`vercel-react-best-practices` → `bundle-dynamic-imports`) | 0011 |
-| Quebrar a `ProductionPage` | 375 linhas numa página; partes viram widgets/features (fila, por mesa, ações do pedido). | 0011 |
