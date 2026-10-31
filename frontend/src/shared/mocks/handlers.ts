@@ -263,6 +263,7 @@ export const handlers = [
     }
     const errors = validateComanda('tableId', 'customerName', tableId, customerName)
     if (hasErrors(errors)) return problems.validation(errors)
+    if (!mockTables.some((t) => t.id === tableId)) return problems.notFound('A mesa informada não existe.')
     const closures = loadClosures()
     closures[closureKey(tableId, customerName.trim())] = new Date().toISOString()
     saveClosures(closures)

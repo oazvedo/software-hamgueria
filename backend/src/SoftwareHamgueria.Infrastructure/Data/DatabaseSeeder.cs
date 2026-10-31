@@ -1,11 +1,19 @@
+using Microsoft.EntityFrameworkCore;
 using SoftwareHamgueria.Domain.Entities;
 
 namespace SoftwareHamgueria.Infrastructure.Data;
 
 public static class DatabaseSeeder
 {
+    /// <summary>Key of the Postgres advisory lock that serializes seeding across instances (spec 019).</summary>
+    public const long SeedLockKey = 4_242_000_019;
+
     public static void Seed(AppDbContext context)
     {
+        // Two instances starting together (a rolling deploy, a scaled API) must not both see an empty menu and seed
+        // it twice: the check and the insert run under a transaction-scoped advisory lock.
+        using var transaction = context.Database.BeginTransaction();
+        context.Database.ExecuteSqlRaw("SELECT pg_advisory_xact_lock({0})", SeedLockKey);
         if (context.Dishes.Any()) return;
 
         var dishes = new[]
@@ -50,5 +58,6 @@ public static class DatabaseSeeder
         }
 
         context.SaveChanges();
+        transaction.Commit();
     }
 }
