@@ -30,6 +30,13 @@ public sealed class GlobalExceptionHandler(IProblemDetailsService problemDetails
                 Title = ProblemTypes.BusinessRuleTitle,
                 Detail = br.Message,
             },
+            ForbiddenException fe => new ProblemDetails
+            {
+                Status = StatusCodes.Status403Forbidden,
+                Type = ProblemTypes.Forbidden,
+                Title = ProblemTypes.ForbiddenTitle,
+                Detail = fe.Message,
+            },
             NotFoundException nf => new ProblemDetails
             {
                 Status = StatusCodes.Status404NotFound,

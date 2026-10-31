@@ -11,7 +11,9 @@ public record OrderResponseDto(
     OrderStatus Status,
     bool ComandaClosed,
     DateTime CreatedAt,
-    DateTime UpdatedAt);
+    DateTime UpdatedAt,
+    // Only in the response that creates the order (ADR 0030): the client keeps it to change or cancel the order later.
+    string? OwnerToken = null);
 
 public record OrderItemResponseDto(Guid DishId, string DishName, double Price, int Quantity, string Notes);
 

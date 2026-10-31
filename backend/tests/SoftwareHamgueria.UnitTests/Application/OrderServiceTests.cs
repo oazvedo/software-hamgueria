@@ -1,3 +1,4 @@
+using SoftwareHamgueria.Application.Orders;
 using FluentValidation;
 using NSubstitute;
 using SoftwareHamgueria.Application.DTOs.Order;
@@ -161,7 +162,7 @@ public class OrderServiceTests
     public async Task UpdateAsync_QuantityZero_IsRejected()
     {
         await Assert.ThrowsAsync<ValidationException>(() =>
-            _sut.UpdateAsync(Guid.NewGuid(), new UpdateOrderDto([new OrderItemDto(_dish.Id, 0)])));
+            _sut.UpdateAsync(Guid.NewGuid(), new UpdateOrderDto([new OrderItemDto(_dish.Id, 0)]), OrderActor.Kitchen));
 
         await _orders.DidNotReceive().UpdateAsync(Arg.Any<Order>());
         _publisher.DidNotReceive().Publish(Arg.Any<string>(), Arg.Any<string>());
@@ -173,7 +174,7 @@ public class OrderServiceTests
         _orders.GetByIdAsync(Arg.Any<Guid>()).Returns((Order?)null);
 
         var ex = await Assert.ThrowsAsync<NotFoundException>(() =>
-            _sut.UpdateAsync(Guid.NewGuid(), new UpdateOrderDto([new OrderItemDto(_dish.Id, 1)])));
+            _sut.UpdateAsync(Guid.NewGuid(), new UpdateOrderDto([new OrderItemDto(_dish.Id, 1)]), OrderActor.Kitchen));
 
         Assert.Equal("Pedido não encontrado.", ex.Message);
     }

@@ -21,6 +21,11 @@ public sealed class ApiClient(HttpClient http, JsonSerializerOptions json)
 
     public HttpClient Http => http;
 
+    // Owner tokens of the orders this client created (ADR 0030), sent back on update and cancel like the frontend does.
+    private readonly Dictionary<Guid, string> _ownerTokens = [];
+
+    public string? OwnerTokenOf(Guid orderId) => _ownerTokens.GetValueOrDefault(orderId);
+
     public JsonSerializerOptions Json => json;
 
     /// <summary>
@@ -80,7 +85,9 @@ public sealed class ApiClient(HttpClient http, JsonSerializerOptions json)
     {
         var response = await PostOrderAsync(await BuildOrderAsync(customer, tableId));
         response.EnsureSuccessStatusCode();
-        return (await ReadAsync<OrderResponseDto>(response))!;
+        var order = (await ReadAsync<OrderResponseDto>(response))!;
+        if (order.OwnerToken is not null) _ownerTokens[order.Id] = order.OwnerToken;
+        return order;
     }
 
     public Task<HttpResponseMessage> GetOrderResponseAsync(Guid id) => http.GetAsync($"/api/order/{id}");
@@ -91,10 +98,23 @@ public sealed class ApiClient(HttpClient http, JsonSerializerOptions json)
     public Task<HttpResponseMessage> SetStatusAsync(Guid orderId, OrderStatus status) =>
         http.PatchAsJsonAsync($"/api/order/{orderId}/status", status, json);
 
-    public Task<HttpResponseMessage> UpdateOrderAsync(Guid orderId, UpdateOrderDto order) =>
-        http.PutAsJsonAsync($"/api/order/{orderId}", order, json);
+    /// <param name="ownerToken">null = the token this client got on creation; "" = send none.</param>
+    public Task<HttpResponseMessage> UpdateOrderAsync(Guid orderId, UpdateOrderDto order, string? ownerToken = null) =>
+        http.SendAsync(WithOwner(new HttpRequestMessage(HttpMethod.Put, $"/api/order/{orderId}")
+        {
+            Content = JsonContent.Create(order, options: json),
+        }, orderId, ownerToken));
 
-    public Task<HttpResponseMessage> CancelAsync(Guid orderId) => http.PatchAsync($"/api/order/{orderId}/cancel", null);
+    /// <param name="ownerToken">null = the token this client got on creation; "" = send none.</param>
+    public Task<HttpResponseMessage> CancelAsync(Guid orderId, string? ownerToken = null) =>
+        http.SendAsync(WithOwner(new HttpRequestMessage(HttpMethod.Patch, $"/api/order/{orderId}/cancel"), orderId, ownerToken));
+
+    private HttpRequestMessage WithOwner(HttpRequestMessage request, Guid orderId, string? ownerToken)
+    {
+        var token = ownerToken ?? OwnerTokenOf(orderId);
+        if (!string.IsNullOrEmpty(token)) request.Headers.Add("X-Order-Token", token);
+        return request;
+    }
 
     // ---- comandas
 
