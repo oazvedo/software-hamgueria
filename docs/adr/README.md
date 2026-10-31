@@ -33,3 +33,7 @@ Formato MADR enxuto ([template.md](template.md)). Para criar um novo, use a skil
 | [0014](0014-comanda-como-mesa-mais-nome.md) | Comanda identificada por mesa + nome | Proposto |
 | [0015](0015-visant-como-padrao-de-interface.md) | Sistema Visant como padrão de interface | Aceito |
 | [0016](0016-estrategia-de-testes.md) | Estratégia de testes | Aceito |
+| [0017](0017-ci-com-github-actions.md) | CI e proteção de branches no GitHub | Proposto |
+| [0018](0018-fluxo-de-branches-e-conventional-commits.md) | Fluxo de branches (main + dev) e Conventional Commits | Proposto |
+| [0019](0019-git-hooks-versionados.md) | Git hooks versionados no repositório | Proposto |
+| [0020](0020-revisao-de-pr-com-claude.md) | Revisão de PR e @claude com o Claude Code Action | Proposto |

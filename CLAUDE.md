@@ -130,9 +130,18 @@ Ajustes conhecidos:
   Library com os handlers MSW. Ponta a ponta: Playwright (`mock` sempre, `real` opcional). Nome do teste cita o
   critério: `"001/CA-04: pedido sem nome de comanda é recusado"`. Todo critério tem sucesso e, se houver, falha.
 
-## Git
+## Git (ADRs 0017 a 0020)
 - Commits **sem** `Co-Authored-By` nem qualquer atribuição ao Claude.
 - Só commite quando o usuário pedir.
+- **Nunca** commite nem dê push direto em `main` ou `dev`. Branch de trabalho a partir da `dev` atualizada, PR para a
+  `dev`. Uma spec = uma branch `feat/NNN-nome` = um PR que cita `docs/specs/NNN-nome`. `main` só recebe PR da `dev`
+  ou de `hotfix/*`.
+- Branch: `<tipo>/<descricao-em-kebab-case>`. Commits e títulos de PR em Conventional Commits
+  (`tipo(escopo): descrição`); tipos `feat fix docs chore refactor test style perf ci build`. Não use `--no-verify`.
+- Hooks versionados: rode uma vez por clone `git config core.hooksPath .githooks`. Regras em `scripts/git/convencao.sh`
+  (testes: `sh scripts/git/convencao.test.sh`).
+- No PR, o CI roda `backend`, `frontend`, `e2e` e `convencao`, e o Claude revisa o diff contra os ADRs (`claude.yml`).
+  Comente `@claude` no PR ou numa issue para pedir ajuste.
 
 ## Comandos
 ```bash
