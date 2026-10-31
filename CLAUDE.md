@@ -9,8 +9,8 @@ textos de interface em português (ADR 0004).
 1. Leia os ADRs em `docs/adr/` (índice em `docs/adr/README.md`). **Eles são lei.** Se uma tarefa exigir
    contrariar um ADR, pare e proponha um novo ADR (skill `adr`). Não desvie em silêncio.
 2. Trabalhe a partir de uma spec em `docs/specs/NNN-nome/`. Sem spec, crie uma (skill `spec`).
-3. Implemente **um bloco por vez** (uma fase do `tasks.md`, skill `implement-task`): as tasks em sequência,
-   cada uma com a sua verificação, e um relatório só no fim do bloco.
+3. **Implementação rápida** (skill `implement-task`): a spec inteira de uma vez, meta de até ~10 minutos, sem parar
+   entre fases. Cada task com a sua verificação; suíte completa e relatório curto só no fim. Pare só se travar.
 
 > **Projeto brownfield.** O código anterior à metodologia está descrito na spec 001 (linha de base) e nos ADRs
 > retroativos. As dívidas conhecidas estão em `docs/specs/README.md` → "Candidatos a spec". Não corrija dívida
@@ -88,7 +88,7 @@ node .claude/skills/visant-killer/scripts/verify-screens.mjs --base http://local
 | `better-ui`, `better-layout`, `better-typography`, `better-colors` | Valores exatos quando a task mexe no domínio (sombras, raio, espaçamento, escala de tipo, contraste APCA) |
 | `tailwind-v4` | Ao escrever utilities ou mexer em `@theme`/tokens de `app/styles/index.css` |
 | `vercel-react-best-practices` | Ao escrever ou revisar componentes/hooks React com foco em performance |
-| `adversarial-review` | Ao concluir uma spec que mexe em pedidos, comandas ou auth, junto com o `code-review` |
+| `adversarial-review` | Só quando o usuário pedir: revisão cética de um diff (pedidos, comandas, auth) |
 
 **Precedência:** ADRs > `CLAUDE.md` > skills do projeto > Visant > demais skills de terceiros. Em conflito entre
 Visant e `better-*` sobre **o que** fazer, vale a Visant; sobre **o valor exato** (px, contraste, ms), vale o `better-*`.
@@ -110,10 +110,9 @@ Ajustes conhecidos:
 - Os `better-*` sugerem valores; tokens novos de cor/tipo entram em `app/styles/index.css`, não inline.
 
 ## Skills globais e quando usar
-- `simplify`: **obrigatória** uma vez por bloco (sobre o diff do bloco inteiro), antes do relatório e de commitar.
-  Nunca pule, nem em blocos pequenos. Achados fora do escopo do bloco vão para o `## Backlog` do `tasks.md`.
-- `code-review`: ao terminar todas as tasks de uma spec.
-- `security-review`: ao mexer em input do usuário, acesso a dados, autenticação (JWT/admin) ou permissões.
+- `simplify`, `code-review`, `security-review`, `adversarial-review`: **só quando o usuário pedir.** No fluxo normal,
+  a limpeza é uma passada rápida inline no fim da spec (sem subagentes). Achados fora do escopo vão para o
+  `## Backlog` do `tasks.md`.
 - Se instalada: `andrej-karpathy-skills:karpathy-guidelines` (toda tarefa de código).
 - `anthropic-skills:skill-creator`: para criar ou ajustar skills deste projeto.
 

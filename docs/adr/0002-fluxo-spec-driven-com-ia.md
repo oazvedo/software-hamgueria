@@ -16,8 +16,10 @@ Toda feature passa por três documentos em `docs/specs/NNN-nome/`, revisados nes
    Se exigir uma decisão nova, cria um ADR `Proposto`.
 3. **`tasks.md`**: checklist de tasks de até ~30 minutos, cada uma com o comando que a verifica.
 
-A IA implementa **um bloco (fase) por vez** com a skill `implement-task`: roda a verificação de cada task, marca `[x]`,
-roda a `simplify` sobre o bloco e para para revisão.
+A IA implementa a **spec inteira de uma vez** com a skill `implement-task` (meta: até ~10 minutos): roda a
+verificação de cada task, marca `[x]`, roda a suíte completa no fim e para só para o relatório ou se travar. Revisões
+pesadas (`simplify`, `code-review`) só quando o usuário pedir. A revisão humana acontece no `spec.md`, no `plan.md`
+e no diff final, não entre fases. (Ajustado em 2026-10-31: o fluxo bloco a bloco com `simplify` obrigatória era lento demais.)
 
 ## Alternativas consideradas
 - **Um único `spec.md` por feature:** mais leve, mas mistura o quê com o como e gera tasks grandes demais.

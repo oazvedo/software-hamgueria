@@ -3,7 +3,7 @@
 - **Spec:** [spec.md](spec.md) · **Plan:** [plan.md](plan.md)
 
 > Uma task = um objetivo, ~30 min, verificável. Os testes vão junto com o código que eles cobrem.
-> Implementar com a skill `implement-task`, um bloco (fase) por vez.
+> Implementar com a skill `implement-task`, a spec inteira de uma vez.
 
 ## Fase 1: backend
 - [ ] **T01. <título>**

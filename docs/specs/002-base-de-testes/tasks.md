@@ -3,7 +3,7 @@
 - **Spec:** [spec.md](spec.md) · **Plan:** [plan.md](plan.md)
 
 > Uma task = um objetivo, ~30 min, verificável. Nesta spec os testes **são** o código; cada task entrega testes que
-> passam. Implementar com a skill `implement-task`, um bloco (fase) por vez.
+> passam. Implementar com a skill `implement-task`, a spec inteira de uma vez.
 > Pré-requisito do backend: Docker rodando. O `dotnet test` usa o Microsoft.Testing.Platform (`global.json` na raiz):
 > `--solution`/`--project` em vez do caminho posicional e `--filter-class` em vez de `--filter`.
 
