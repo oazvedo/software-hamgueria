@@ -4,6 +4,8 @@ import { closeComanda, createOrder, useOrderStore } from '@/entities/order'
 import { TableComandasPage } from '@/pages/table-comandas'
 import { AppRoutes } from '@/app/router/routes'
 import { renderWithProviders } from '@/shared/test'
+import { mockDishes } from '@/shared/mocks/data'
+import { formatCurrency } from '@/shared/lib/formatCurrency'
 
 const renderList = (route = '/comandas/t1') =>
   renderWithProviders(<TableComandasPage />, { route, path: '/comandas/:tableId' })
@@ -26,6 +28,15 @@ describe('comandas da mesa', () => {
     expect(rows[0].textContent).toContain('Aberta')
     expect(rows[0].getAttribute('href')).toBe('/comanda/t1/Bia')
     expect(screen.getByText('abertas', { exact: false }).textContent).toMatch(/3\s*comandas,\s*2\s*abertas/)
+
+    // each row: orders, in production and total; and the table total (RN-02, RN-05)
+    const price = mockDishes.find((d) => d.id === 'd4')!.price
+    expect(rows[0].textContent).toMatch(/1\s*pedido/)
+    expect(rows[0].textContent).toMatch(/1\s*em produção/)
+    expect(rows[0].textContent).toContain(formatCurrency(price * 2))
+    expect(rows[1].textContent).toContain(formatCurrency(price))
+    expect(rows[2].textContent).toMatch(/1\s*pedido/)
+    expect(screen.getByText('abertas', { exact: false }).parentElement!.textContent).toContain(formatCurrency(price * 4))
   })
 
   it('007/CA-03: a comanda do cliente aparece marcada', async () => {

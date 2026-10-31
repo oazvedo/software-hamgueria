@@ -7,7 +7,8 @@ export interface ComandaSummary {
   inProduction: number
   total: number
   closed: boolean
-  lastOrderAt: string
+  /** Epoch ms of the latest order: compared as numbers, since .NET timestamps vary in fraction length. */
+  lastOrderAt: number
 }
 
 /** One summary per comanda of a table: open ones first, then the most recently active (spec 007, RN-02). */
@@ -22,7 +23,7 @@ export function summarizeComandas(orders: OrderResponse[]): ComandaSummary[] {
       inProduction: list.filter((o) => !isTerminal(o.status)).length,
       total: list.reduce((sum, o) => sum + orderTotal(o), 0),
       closed: isComandaClosed(list),
-      lastOrderAt: list.map((o) => o.createdAt).sort().at(-1)!,
+      lastOrderAt: Math.max(...list.map((o) => Date.parse(o.createdAt))),
     }))
-    .sort((a, b) => Number(a.closed) - Number(b.closed) || b.lastOrderAt.localeCompare(a.lastOrderAt))
+    .sort((a, b) => Number(a.closed) - Number(b.closed) || b.lastOrderAt - a.lastOrderAt)
 }
