@@ -34,6 +34,9 @@ public sealed class HamgueriaApiFactory : WebApplicationFactory<Program>, IAsync
         _ = Server;
     }
 
+    /// <summary>Stops this factory's Postgres, to test how the API behaves without its database.</summary>
+    public Task StopDatabaseAsync() => _postgres.StopAsync();
+
     public override async ValueTask DisposeAsync()
     {
         await base.DisposeAsync();

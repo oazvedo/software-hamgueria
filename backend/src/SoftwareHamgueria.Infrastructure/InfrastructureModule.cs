@@ -16,6 +16,8 @@ public static class InfrastructureModule
         services.AddDbContext<AppDbContext>(options =>
             options.UseNpgsql(configuration.GetConnectionString("Postgres")));
 
+        services.AddHealthChecks().AddDbContextCheck<AppDbContext>();
+
         services.AddScoped<IDishRepository, DishRepository>();
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<ITableRepository, TableRepository>();

@@ -31,4 +31,19 @@ public class AuthServiceTests
     {
         Assert.False(string.IsNullOrEmpty(_sut.Login(new LoginDto("admin", "admin123"))?.Token));
     }
+
+    [Theory(DisplayName = "004/CA-10: sem usuário ou senha configurados, ninguém entra")]
+    [InlineData("Auth:AdminUsername")]
+    [InlineData("Auth:AdminPassword")]
+    public void Login_MissingCredentialConfig_ReturnsNull(string missingKey)
+    {
+        var config = Substitute.For<IConfiguration>();
+        config["Auth:AdminUsername"].Returns(missingKey == "Auth:AdminUsername" ? null : "admin");
+        config["Auth:AdminPassword"].Returns(missingKey == "Auth:AdminPassword" ? null : "admin123");
+        config["Auth:JwtSecret"].Returns(new string('s', 64));
+        var sut = new AuthService(config);
+
+        Assert.Null(sut.Login(new LoginDto("admin", "admin123")));
+        Assert.Null(sut.Login(new LoginDto("", "")));
+    }
 }
