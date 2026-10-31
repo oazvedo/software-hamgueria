@@ -16,6 +16,7 @@ Para criar: skill `spec`. Para implementar: skill `implement-task`. Templates em
 | # | Spec | Status |
 |---|---|---|
 | 001 | [Linha de base: o que o Hamgueria já faz](001-linha-de-base/spec.md) | Concluída (retroativa) |
+| 002 | [Base de testes automatizados](002-base-de-testes/spec.md) | Em andamento |
 
 ## Candidatos a spec
 Dívidas e ideias encontradas na adoção do fluxo (2026-10-31). Cada item vira uma spec, entra numa spec existente ou é
@@ -23,7 +24,6 @@ descartado. Ao aprovar uma spec que resolve um item, remova-o daqui.
 
 | Candidato | Por quê | ADR afetado |
 |---|---|---|
-| **Base de testes** (xUnit + Testcontainers no backend; Vitest + Playwright no frontend) | Hoje não há nenhum teste; a verificação das tasks é só build + lint, e os `CA` da spec 001 não têm cobertura. Recomendado como **próxima spec**. | novo (estratégia de testes) |
 | Validação + ProblemDetails + handler global de exceções | Sem validação de entrada (nome vazio, preço negativo, quantidade ≤ 0, pedido sem itens) e erros como texto simples com `try/catch` repetido nos controllers. | 0008 |
 | Unit of Work | Pedido gravado e evento publicado não são atômicos; operações compostas não têm transação. | 0006, 0010 |
 | Preço como `decimal` | `Dish.Price` é `double`: erros de arredondamento em dinheiro. | 0007 |

@@ -32,3 +32,4 @@ Formato MADR enxuto ([template.md](template.md)). Para criar um novo, use a skil
 | [0013](0013-msw-mocks-por-padrao.md) | Mocks de API com MSW ligados por padrão | Proposto |
 | [0014](0014-comanda-como-mesa-mais-nome.md) | Comanda identificada por mesa + nome | Proposto |
 | [0015](0015-visant-como-padrao-de-interface.md) | Sistema Visant como padrão de interface | Aceito |
+| [0016](0016-estrategia-de-testes.md) | Estratégia de testes | Aceito |
