@@ -130,6 +130,8 @@ Ajustes conhecidos:
   `NotFoundException`/`BusinessRuleException` (ADR 0022). JWT com papel `Admin` (ADR 0009). Eventos de pedido no RabbitMQ (ADR 0010), enfileirados em memória e enviados em segundo plano: pedido nunca falha por causa da fila (ADR 0025). Comanda = mesa + nome (ADR 0014).
   Auditoria do banco por triggers em `audit.change_log`, com autor e tela vindos de `IAuditContext` (ADR 0027): tabela nova
   ganha o trigger na migration. Traces, métricas e logs por OpenTelemetry, instrumentos próprios em `HamgueriaTelemetry` (ADR 0028).
+  Jobs de fundo no Hangfire (Postgres): classe na Application, recorrência em `Infrastructure/Jobs/RecurringJobs`,
+  painel em `/api/jobs` (ADR 0029).
   Segredos só por variável de ambiente, validados no startup fora de `Development` pelo `RequiredSettings` (ADR 0024).
 - **Deploy:** uma EC2 com `docker-compose.prod.yml` (Postgres, RabbitMQ, API e Caddy servindo a tela e o `/api`), só
   80/443 abertas, segredos no `.env` da raiz (ADR 0023). Guia em `docs/deploy/aws-ec2.md`.
