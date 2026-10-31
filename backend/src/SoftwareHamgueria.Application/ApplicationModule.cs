@@ -16,6 +16,7 @@ public static class ApplicationModule
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<ITableService, TableService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IAuditService, AuditService>();
         // Events are queued here and sent by the Infrastructure in the background (ADR 0025).
         services.AddSingleton(sp => new PendingOrderEvents(sp.GetRequiredService<ILogger<PendingOrderEvents>>()));
         services.AddSingleton<IOrderEventPublisher, QueuedOrderEventPublisher>();

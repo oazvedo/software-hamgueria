@@ -1,6 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using SoftwareHamgueria.Application.Audit;
+using SoftwareHamgueria.Infrastructure.Audit;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using SoftwareHamgueria.Application.Repositories;
 using SoftwareHamgueria.Infrastructure.Data;
@@ -19,8 +22,11 @@ public static class InfrastructureModule
 {
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddDbContext<AppDbContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("Postgres")));
+        // The API replaces this with the request's author and screen (ADR 0027); without a request it is "sistema".
+        services.TryAddScoped<IAuditContext, SystemAuditContext>();
+        services.AddDbContext<AppDbContext>((sp, options) =>
+            options.UseNpgsql(configuration.GetConnectionString("Postgres"))
+                .AddInterceptors(new AuditContextInterceptor(sp.GetRequiredService<IAuditContext>())));
 
         // /api/health looks only at "db"; /api/health/details shows both (spec 005).
         services.AddSingleton<RabbitMqEventDispatcher>();
@@ -33,6 +39,7 @@ public static class InfrastructureModule
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<ITableRepository, TableRepository>();
         services.AddScoped<IComandaRepository, ComandaRepository>();
+        services.AddScoped<IAuditRepository, AuditRepository>();
 
         // Order status is now managed manually from the kitchen screen (/producao),
         // so the automatic RabbitMQ status consumer is disabled. Re-enable to let an
