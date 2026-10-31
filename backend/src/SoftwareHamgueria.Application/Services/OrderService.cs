@@ -68,9 +68,13 @@ public class OrderService(
         return ToDto(order, IsClosed(order, closure?.ClosedAt));
     }
 
+    /// <summary>Kitchen board (spec 020): bounded, so it does not grow with the restaurant's whole history.</summary>
+    public const int KitchenMaxOrders = 500;
+    public static readonly TimeSpan KitchenFinishedWindow = TimeSpan.FromHours(24);
+
     public async Task<IEnumerable<OrderResponseDto>> GetAllAsync()
     {
-        var orders = await orderRepository.GetAllAsync();
+        var orders = await orderRepository.GetForKitchenAsync(DateTime.UtcNow - KitchenFinishedWindow, KitchenMaxOrders);
         var closures = BuildClosureMap(await comandaRepository.GetAllAsync());
         return orders.Select(o => ToDto(o, IsClosed(o, closures)));
     }

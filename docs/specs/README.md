@@ -71,6 +71,5 @@ descartado. Ao aprovar uma spec que resolve um item, remova-o daqui.
 | Unit of Work | Pedido gravado e evento publicado não são atômicos; operações compostas não têm transação. | 0006, 0010 |
 | Preço como `decimal` | `Dish.Price` é `double`: erros de arredondamento em dinheiro. | 0007 |
 | Lint das fronteiras do FSD | A regra de imports do FSD não é verificada automaticamente. | 0011 |
-| Paginação em `GET /api/order` | A lista da cozinha cresce sem limite. | 0006 |
 | Rotas com `React.lazy` | As 6 páginas são importadas estaticamente em `app/router/routes.tsx`; o cliente baixa a tela da cozinha. (`vercel-react-best-practices` → `bundle-dynamic-imports`) | 0011 |
 | Quebrar a `ProductionPage` | 375 linhas numa página; partes viram widgets/features (fila, por mesa, ações do pedido). | 0011 |

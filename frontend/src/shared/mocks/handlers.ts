@@ -274,7 +274,13 @@ export const handlers = [
   http.get('/api/order', ({ request }) => {
     if (!isAuthed(request)) return problems.unauthorized()
     const closures = loadClosures()
-    return HttpResponse.json(loadOrders().map((o) => withClosed(o, closures)))
+    // Same bound as the API (spec 020): in progress at any age, finished in the last 24 h, newest first, up to 500.
+    const since = Date.now() - 24 * 60 * 60 * 1000
+    const visible = loadOrders()
+      .filter((o) => !['Done', 'Cancelled'].includes(o.status) || Date.parse(o.updatedAt) >= since)
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+      .slice(0, 500)
+    return HttpResponse.json(visible.map((o) => withClosed(o, closures)))
   }),
 
   http.patch('/api/order/:id/status', async ({ request, params }) => {

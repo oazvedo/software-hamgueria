@@ -333,6 +333,7 @@ function KitchenBoard() {
             <aside>
               <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-foreground">
                 Finalizados
+                <span className="text-xs font-normal text-muted-foreground">últimas 24 h</span>
                 <DataText className="text-sm font-normal text-muted-foreground">({finished.length})</DataText>
               </h2>
               {finished.length === 0 ? (
