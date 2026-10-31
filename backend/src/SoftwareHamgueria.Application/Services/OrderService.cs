@@ -1,12 +1,12 @@
-using SoftwareHamgueria.Application.Orders;
 using FluentValidation;
 using SoftwareHamgueria.Application.DTOs.Order;
 using SoftwareHamgueria.Application.Exceptions;
 using SoftwareHamgueria.Application.Messaging;
+using SoftwareHamgueria.Application.Orders;
 using SoftwareHamgueria.Application.Repositories;
 using SoftwareHamgueria.Application.Services.Interfaces;
-using SoftwareHamgueria.Domain.Entities;
 using SoftwareHamgueria.Application.Telemetry;
+using SoftwareHamgueria.Domain.Entities;
 
 namespace SoftwareHamgueria.Application.Services;
 
