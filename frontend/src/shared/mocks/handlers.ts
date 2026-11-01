@@ -361,6 +361,32 @@ export const handlers = [
     return HttpResponse.json({ ...order, comandaClosed: false })
   }),
 
+  // Spec 025: open comandas with no order for `hours` (same rule as OrderService.GetIdleComandasAsync).
+  http.get('/api/order/comandas/idle', ({ request }) => {
+    if (!isAuthed(request)) return problems.unauthorized()
+    const hours = Number(new URL(request.url).searchParams.get('hours') ?? 6)
+    if (!(hours >= 1 && hours <= 72)) return problems.validation({ hours: ['As horas vão de 1 a 72.'] })
+    const cutoff = Date.now() - hours * 3_600_000
+    const closures = loadClosures()
+    // Same as the API: a comanda is table + name ignoring case, and only orders after its last closing count.
+    const groups = new Map<string, { tableId: string; tableName: string; customerName: string; lastOrderAt: string; orders: number }>()
+    for (const o of loadOrders()) {
+      const key = closureKey(o.tableId, o.customerName)
+      if (closures[key] && o.createdAt <= closures[key]) continue
+      const g = groups.get(key) ?? { tableId: o.tableId, tableName: o.tableName, customerName: o.customerName, lastOrderAt: o.createdAt, orders: 0 }
+      g.orders++
+      if (o.createdAt >= g.lastOrderAt) {
+        g.lastOrderAt = o.createdAt
+        g.customerName = o.customerName
+      }
+      groups.set(key, g)
+    }
+    const idle = [...groups.values()]
+      .filter((g) => Date.parse(g.lastOrderAt) < cutoff)
+      .sort((a, b) => a.lastOrderAt.localeCompare(b.lastOrderAt))
+    return HttpResponse.json(idle)
+  }),
+
   http.get('/api/order/:id', ({ params }) => {
     const order = loadOrders().find((o) => o.id === params.id)
     if (!order) return problems.notFound()

@@ -139,6 +139,23 @@ export function useTableComandas(tableId: string | undefined, enabled: boolean) 
   })
 }
 
+export interface IdleComanda {
+  tableId: string
+  tableName: string
+  customerName: string
+  lastOrderAt: string
+  orders: number
+}
+
+/** Open comandas with no new order for `hours` (kitchen only, spec 025). Polled with the board. */
+export function useIdleComandas(hours = 6) {
+  return useQuery({
+    queryKey: [...queryKeys.idleComandas, hours],
+    queryFn: async () => (await httpClient.get<IdleComanda[]>('/api/order/comandas/idle', { params: { hours } })).data,
+    refetchInterval: 60_000,
+  })
+}
+
 /** Kitchen board: polls every order in the house (admin-only). */
 export function useAllOrders(enabled: boolean) {
   return useQuery({
