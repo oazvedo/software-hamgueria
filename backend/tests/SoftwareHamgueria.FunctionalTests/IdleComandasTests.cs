@@ -47,6 +47,46 @@ public class IdleComandasTests(HamgueriaApiFactory factory)
         Assert.DoesNotContain(idle, c => c.CustomerName == closed);
     }
 
+    [Fact(DisplayName = "025/CA-02 (falha): \"Ana\" e \"ana\" são a mesma comanda; um pedido recente de qualquer uma a tira do aviso")]
+    public async Task IdleComandas_IgnoreNameCase()
+    {
+        var kitchen = factory.CreateApiClient();
+        await kitchen.LoginAsAdminAsync();
+        var table = await kitchen.FirstTableIdAsync();
+        var name = ApiClient.UniqueCustomer("Caixa");
+        await OrderAtAsync(table, name, TimeSpan.FromHours(10));
+        await OrderAtAsync(table, name.ToLowerInvariant(), TimeSpan.FromHours(1));
+
+        var idle = (await kitchen.Http.GetFromJsonAsync<List<IdleComandaDto>>("/api/order/comandas/idle?hours=6", kitchen.Json))!;
+
+        Assert.DoesNotContain(idle, c => string.Equals(c.CustomerName, name, StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact(DisplayName = "025/CA-01: comanda fechada e reaberta conta só os pedidos depois do fechamento")]
+    public async Task IdleComandas_CountOnlyAfterClosing()
+    {
+        var kitchen = factory.CreateApiClient();
+        await kitchen.LoginAsAdminAsync();
+        var table = await kitchen.FirstTableIdAsync();
+        var name = ApiClient.UniqueCustomer("Reaberta");
+        await OrderAtAsync(table, name, TimeSpan.FromHours(30));
+        await OrderAtAsync(table, name, TimeSpan.FromHours(29));
+        (await kitchen.CloseComandaAsync(table, name)).EnsureSuccessStatusCode();
+        // The closing is "now": an order after it must be newer, so move the closing back first.
+        await using (var db = new NpgsqlConnection(factory.ConnectionString))
+        {
+            await db.OpenAsync();
+            await using var back = new NpgsqlCommand("""UPDATE "ComandaClosures" SET "ClosedAt" = now() - interval '20 hours' WHERE "CustomerName" = @n""", db);
+            back.Parameters.AddWithValue("n", name);
+            await back.ExecuteNonQueryAsync();
+        }
+        await OrderAtAsync(table, name, TimeSpan.FromHours(8));
+
+        var idle = (await kitchen.Http.GetFromJsonAsync<List<IdleComandaDto>>("/api/order/comandas/idle?hours=6", kitchen.Json))!;
+
+        Assert.Equal(1, Assert.Single(idle, c => c.CustomerName == name).Orders);
+    }
+
     [Fact(DisplayName = "025/CA-03 (falha): sem login da cozinha, a lista é negada; horas fora de 1 a 72, recusadas")]
     public async Task IdleComandas_Guards()
     {

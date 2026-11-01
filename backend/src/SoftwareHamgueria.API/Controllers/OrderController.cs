@@ -22,13 +22,13 @@ public class OrderController(IOrderService orderService) : ControllerBase
         return order is null ? NotFound() : Ok(order);
     }
 
-    // Public: a customer follows their own tab (all orders for table + name).
     /// <summary>Open comandas idle for <paramref name="hours"/> hours (1 to 72, default 6): kitchen only (spec 025).</summary>
     [HttpGet("comandas/idle")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> IdleComandas([FromQuery] int hours = 6) =>
         Ok(await orderService.GetIdleComandasAsync(hours));
 
+    // Public: a customer follows their own tab (all orders for table + name).
     [HttpGet("comanda")]
     public async Task<IActionResult> GetComanda([FromQuery] Guid tableId, [FromQuery] string customer) =>
         Ok(await orderService.GetComandaAsync(tableId, customer));

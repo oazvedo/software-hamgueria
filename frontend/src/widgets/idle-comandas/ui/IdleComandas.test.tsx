@@ -39,4 +39,13 @@ describe('comandas esquecidas (spec 025)', () => {
     await new Promise((r) => setTimeout(r, 50))
     expect(screen.queryByRole('region')).toBeNull()
   })
+
+  it('025/CA-02 (falha): "Ana" e "ana" são a mesma comanda; pedido recente de qualquer uma tira do aviso', async () => {
+    localStorage.setItem('hamgueria-mock-orders', JSON.stringify([order('a', 'Ana', 10), order('b', 'ana', 1)]))
+
+    renderWithProviders(<IdleComandas />)
+
+    await new Promise((r) => setTimeout(r, 50))
+    expect(screen.queryByRole('region')).toBeNull()
+  })
 })

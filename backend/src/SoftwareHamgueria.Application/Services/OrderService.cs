@@ -77,13 +77,20 @@ public class OrderService(
     {
         if (hours is < 1 or > 72)
             throw new ValidationException([new FluentValidation.Results.ValidationFailure("hours", "As horas vão de 1 a 72.")]);
-        var idle = await orderRepository.GetComandasIdleSinceAsync(DateTime.UtcNow - TimeSpan.FromHours(hours));
+        var rows = await orderRepository.GetOrdersOfComandasIdleSinceAsync(DateTime.UtcNow - TimeSpan.FromHours(hours));
         var closures = BuildClosureMap(await comandaRepository.GetAllAsync());
-        return idle
-            .Where(c => !(closures.TryGetValue((c.TableId, c.CustomerName.ToLowerInvariant()), out var closedAt) && c.LastOrderAt <= closedAt))
-            .OrderBy(c => c.LastOrderAt)
-            .Select(c => new IdleComandaDto(c.TableId, c.TableName, c.CustomerName, c.LastOrderAt, c.Orders))
-            .ToList();
+        var idle = new List<IdleComandaDto>();
+        foreach (var comanda in rows.GroupBy(r => (r.TableId, Name: r.CustomerName.ToLowerInvariant())))
+        {
+            // Only the orders after the last closing belong to the open comanda (a closed one reopens with a new order).
+            var open = closures.TryGetValue(comanda.Key, out var closedAt)
+                ? comanda.Where(r => r.CreatedAt > closedAt).ToList()
+                : comanda.ToList();
+            if (open.Count == 0) continue;
+            var last = open.MaxBy(r => r.CreatedAt)!;
+            idle.Add(new IdleComandaDto(last.TableId, last.TableName, last.CustomerName, last.CreatedAt, open.Count));
+        }
+        return idle.OrderBy(c => c.LastOrderAt).ToList();
     }
 
     /// <summary>Kitchen board (spec 020): bounded, so it does not grow with the restaurant's whole history.</summary>
