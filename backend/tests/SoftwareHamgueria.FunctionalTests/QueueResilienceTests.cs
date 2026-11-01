@@ -111,7 +111,12 @@ public class QueueTelemetryTests
         var order = await client.CreateOrderAsync(ApiClient.UniqueCustomer("Otel"));
         await api.ReceiveEventsAsync(1);
 
-        Assert.True(Interlocked.Read(ref published) >= 1);
+        // The counter moves when the broker's confirm returns, which can come after the test queue already got the
+        // message: wait for it instead of racing (it failed this way once in CI).
+        await BrokerApiFactory.Eventually(() => Task.FromResult(Interlocked.Read(ref published) >= 1),
+            TimeSpan.FromSeconds(10), "o contador published devia subir depois do confirm");
+        await BrokerApiFactory.Eventually(() => Task.FromResult(spans.Any(a => a.DisplayName == "publish order event")),
+            TimeSpan.FromSeconds(10), "o span de envio devia terminar");
         var span = spans.First(a => a.DisplayName == "publish order event" && a.Status != System.Diagnostics.ActivityStatusCode.Error);
         Assert.Equal("order.created", span.GetTagItem("messaging.rabbitmq.destination.routing_key"));
         Assert.Equal(System.Diagnostics.ActivityKind.Producer, span.Kind);
