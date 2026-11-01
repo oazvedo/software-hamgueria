@@ -57,7 +57,7 @@
     ]
   },
   "allowScripts": {
-    "msw@2.15.0": true,
-    "web-vitals": false
+    "web-vitals": false,
+    "msw@3.0.3": true
   }
 }

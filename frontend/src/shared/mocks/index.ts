@@ -3,5 +3,5 @@ export async function enableMocking(): Promise<void> {
   // VITE_ENABLE_MOCKS=false drops the MSW chunk entirely (spec 004, RN-06).
   if (import.meta.env.VITE_ENABLE_MOCKS === 'false') return
   const { worker } = await import('@/shared/mocks/browser')
-  await worker.start({ onUnhandledRequest: 'bypass' })
+  await worker.start({ onUnhandledFrame: 'bypass' })
 }
