@@ -29,6 +29,18 @@ Para criar: skill `spec`. Para implementar: skill `implement-task`. Templates em
 | 012 | [Só o dono muda o pedido, e status não anda para trás](012-pedido-seguro/spec.md) | Concluída |
 | 013 | [O CI cobra o gate de interface e as imagens de produção](013-ci-gate-e-imagens/spec.md) | Concluída |
 | 014 | [Tema claro](014-tema-claro/spec.md) | Concluída |
+| 015 | [O cliente altera e cancela o próprio pedido pela tela](015-cliente-muda-pedido/spec.md) | Concluída |
+| 016 | [Preço exato, em centavos](016-preco-decimal/spec.md) | Concluída |
+| 017 | [Pedido e aviso gravados juntos, e aviso que não se perde](017-outbox/spec.md) | Concluída |
+| 018 | [Sem dependência com vulnerabilidade conhecida](018-dependencias/spec.md) | Concluída |
+| 019 | [Seed sem duplicar e comanda só de mesa que existe](019-seed-e-comanda/spec.md) | Concluída |
+| 020 | [A lista da cozinha não cresce para sempre](020-lista-cozinha/spec.md) | Concluída |
+| 021 | [Telas carregadas sob demanda e a cozinha em partes](021-bundle-e-cozinha/spec.md) | Concluída |
+| 022 | [As fronteiras do FSD verificadas pela máquina](022-fsd-lint/spec.md) | Concluída |
+| 023 | [Ver o que acontece no navegador](023-telemetria-navegador/spec.md) | Concluída |
+| 024 | [Itens pequenos dos backlogs](024-menores/spec.md) | Concluída |
+| 025 | [Comanda esquecida aberta](025-comandas-esquecidas/spec.md) | Concluída |
+| 026 | [Teste instável](026-teste-instavel/spec.md) | Concluída |
 
 ## Lote autônomo (2026-10-31, ADR 0026): concluído
 Ordem de execução, todas integradas na `dev` (PRs #7 a #15). Cada item vira uma spec com PR próprio para a `dev`. O que não couber vai para "Candidatos".
@@ -44,7 +56,7 @@ Ordem de execução, todas integradas na `dev` (PRs #7 a #15). Cada item vira um
 | 013 | CI de interface e imagens | `gate.sh` e os Dockerfiles não rodam no CI | Passo do gate no job `frontend`; job que constrói as duas imagens |
 | 014 | Tema claro | O app só tem o tema escuro (`class="dark"` fixo); os tokens claros existem mas não são alcançáveis | Alternância claro/escuro no header, seguindo o sistema por padrão e lembrando a escolha; telas conferidas nos dois temas (pedido do usuário, 2026-10-31) |
 
-## Lote 2 (2026-10-31, ADR 0026): "corrige todos em fila"
+## Lote 2 (2026-10-31, ADR 0026): "corrige todos em fila", concluído (PRs #17 a #46)
 | # | Spec | O que resolve | Decisão já tomada |
 |---|---|---|---|
 | 015 | Cliente cancela e altera o pedido | A API e o token de dono existem (012), a tela não | Botões no acompanhamento do pedido, só com o token do aparelho e status não final |
