@@ -3,6 +3,7 @@
 version: 2
 updates:
   - package-ecosystem: docker
+    commit-message: { prefix: build, include: scope }   # build(deps): ... (convencao, ADR 0018)
     # Major image versions (Postgres 16 to 18, RabbitMQ 3 to 4...) need a data migration: decided by hand, not here.
     ignore:
       - dependency-name: "*"
@@ -11,6 +12,7 @@ updates:
     schedule: { interval: weekly }
     target-branch: dev
   - package-ecosystem: docker-compose
+    commit-message: { prefix: build, include: scope }   # build(deps): ... (convencao, ADR 0018)
     # Major image versions (Postgres 16 to 18, RabbitMQ 3 to 4...) need a data migration: decided by hand, not here.
     ignore:
       - dependency-name: "*"
@@ -19,6 +21,7 @@ updates:
     schedule: { interval: weekly }
     target-branch: dev
   - package-ecosystem: nuget
+    commit-message: { prefix: build, include: scope }   # build(deps): ... (convencao, ADR 0018)
     directory: /backend
     schedule: { interval: weekly }
     target-branch: dev
@@ -26,12 +29,14 @@ updates:
       microsoft: { patterns: ["Microsoft.*", "System.*"] }
       opentelemetry: { patterns: ["OpenTelemetry*", "Npgsql.OpenTelemetry"] }
   - package-ecosystem: npm
+    commit-message: { prefix: build, include: scope }   # build(deps): ... (convencao, ADR 0018)
     directory: /frontend
     schedule: { interval: weekly }
     target-branch: dev
     groups:
       minor-and-patch: { update-types: [minor, patch] }
   - package-ecosystem: github-actions
+    commit-message: { prefix: build, include: scope }   # build(deps): ... (convencao, ADR 0018)
     directory: /
     schedule: { interval: weekly }
     target-branch: dev
