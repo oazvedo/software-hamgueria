@@ -1,5 +1,6 @@
 #!/bin/sh
-# Gate de interface (ADR 0015, spec 006): cor, ruído e AI tell (killer-scan), copy (copy-lint) e motion (motion-lint).
+# Gate de interface (ADR 0015, spec 006): cor, ruído e AI tell (killer-scan), copy (copy-lint), motion (motion-lint) e
+# fronteiras do FSD (fsd-lint, spec 022).
 # Sai com erro se qualquer detector achar algo. Uso (da raiz): sh scripts/ui/gate.sh [alvo]   (padrão: frontend/src)
 # Os códigos de saída dos detectores não servem de veredito: o killer-scan sai 1 mesmo limpo ("GATE INCOMPLETE",
 # porque o copy roda à parte) e o motion-lint sai 0 com achados MEDIUM. Por isso o gate lê a saída de cada um.
@@ -39,6 +40,12 @@ if grep -q 'motion-lint: clean' "$saida"; then
   echo "OK    motion-lint"
 else
   echo "FALHA motion-lint:"; cat "$saida"; falhas=$((falhas + 1))
+fi
+
+if node "$ROOT/scripts/ui/fsd-lint.mjs" "$ALVO" >"$saida" 2>&1; then
+  echo "OK    fsd-lint"
+else
+  echo "FALHA fsd-lint (fronteiras do FSD, ADR 0011):"; cat "$saida"; falhas=$((falhas + 1))
 fi
 
 if [ $falhas -eq 0 ]; then echo "Gate de interface aberto."; else echo "$falhas detector(es) com achados."; exit 1; fi
