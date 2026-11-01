@@ -1,0 +1,101 @@
+# Produção numa EC2 (ADR 0023). Guia: docs/deploy/aws-ec2.md.
+#   cp .env.example .env && chmod 600 .env   # preencha os segredos
+#   docker compose -f docker-compose.prod.yml up -d --build
+# Só o "web" (Caddy) publica portas. Banco e fila ficam na rede interna. Segredos vêm do .env (ADR 0024).
+name: hamgueria
+
+x-logging: &logging
+  driver: json-file
+  options: { max-size: "10m", max-file: "3" }
+
+services:
+  postgres:
+    image: postgres:16-alpine@sha256:0cefaabd882e42bcb2a2f3dc56d3ce4770560ba62fd7f197f1a2e008fd5731ab
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: hamgueria
+      POSTGRES_USER: hamgueria
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hamgueria -d hamgueria"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    logging: *logging
+
+  rabbitmq:
+    image: rabbitmq:3.13-alpine@sha256:d7af1c87c5f1eda13fcfca06db452bf3aeab6619fc3358b68535c0c02c4e52bc
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:?defina RABBITMQ_USER no .env}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?defina RABBITMQ_PASSWORD no .env}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    logging: *logging
+
+  api:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      postgres: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=hamgueria;Username=hamgueria;Password=${POSTGRES_PASSWORD}
+      RabbitMq__Host: rabbitmq
+      RabbitMq__Port: "5672"
+      RabbitMq__Username: ${RABBITMQ_USER}
+      RabbitMq__Password: ${RABBITMQ_PASSWORD}
+      Auth__AdminUsername: ${AUTH_ADMIN_USERNAME:?defina AUTH_ADMIN_USERNAME no .env}
+      Auth__AdminPassword: ${AUTH_ADMIN_PASSWORD:?defina AUTH_ADMIN_PASSWORD no .env}
+      Auth__JwtSecret: ${AUTH_JWT_SECRET:?defina AUTH_JWT_SECRET no .env}
+      # Telemetry (ADR 0028). Empty = no exporter; with the "observability" profile, point it at the dashboard.
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+    healthcheck:
+      # The aspnet image has no curl: plain HTTP over bash's /dev/tcp, healthy only on "200".
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/8080 && printf 'GET /api/health HTTP/1.0\\r\\n\\r\\n' >&3 && head -n1 <&3 | grep -q ' 200 '"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+    logging: *logging
+
+  web:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      api: { condition: service_healthy }
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    logging: *logging
+
+  # Optional (docker compose --profile observability ...). Bound to the instance's loopback: open it through an SSH
+  # tunnel (ssh -L 18888:localhost:18888 ...). The login token is printed in its log.
+  aspire-dashboard:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:9.5@sha256:f287c6954596315ada6fb45af6ed2e451c45658aeb68d98dc1cfed5b5b253895
+    profiles: ["observability"]
+    restart: unless-stopped
+    environment:
+      DASHBOARD__OTLP__AUTHMODE: Unsecured   # only the internal network reaches the OTLP port
+    ports:
+      - "127.0.0.1:18888:18888"
+    logging: *logging
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+  caddy_data:
+  caddy_config:

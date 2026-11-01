@@ -62,6 +62,7 @@ valida_origem_pr() {
       case "$head" in
         main) ;;
         hotfix/*) falha "hotfix/* vai para a main. A correção chega à dev pelo PR main → dev." ;;
+        dependabot/*) ;; # atualizações de dependência abertas pelo Dependabot (spec 024)
         *) valida_branch "$head" ;;
       esac ;;
   esac

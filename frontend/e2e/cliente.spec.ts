@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { placeOrder, skipRealWithoutApi, uniqueCustomer } from './support'
+import { addFirstDish, placeOrder, sendCart, skipRealWithoutApi, uniqueCustomer } from './support'
 
 skipRealWithoutApi()
 
@@ -10,8 +10,8 @@ test('001/CA-07, CA-08, CA-13: cliente pede, vê comanda e mesa, fecha a comanda
   await placeOrder(page, customer)
   await expect(page.getByText('1 pedido · total da comanda')).toBeVisible()
 
-  // a mesa mostra a comanda
-  await page.getByRole('link', { name: 'Ver a mesa toda' }).click()
+  // a lista de comandas da mesa mostra a comanda (spec 007)
+  await page.getByRole('link', { name: 'Todas as comandas da mesa' }).click()
   await expect(page.getByText(customer).first()).toBeVisible()
   await page.goBack()
 
@@ -24,4 +24,32 @@ test('001/CA-07, CA-08, CA-13: cliente pede, vê comanda e mesa, fecha a comanda
   await expect(page.getByText('Fechada', { exact: true })).toBeHidden()
   await expect(page.getByRole('button', { name: 'Fechar comanda' })).toBeVisible()
   await expect(page.getByText('2 pedidos · total da comanda')).toBeVisible()
+})
+
+test('003/CA-03, CA-01: o carrinho para em 20 unidades do mesmo prato e o pedido no limite é aceito', async ({ page }) => {
+  await addFirstDish(page, 'Mesa 02')
+
+  const more = page.getByRole('button', { name: 'Aumentar' })
+  for (let i = 1; i < 20; i++) await more.click()
+  await expect(more).toBeDisabled()
+  await expect(page.getByText('"quantity": 20')).toBeVisible()
+
+  await sendCart(page, uniqueCustomer('limite'))
+})
+
+test('006/CA-01: a página se declara em português do Brasil', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.locator('html')).toHaveAttribute('lang', 'pt-BR')
+})
+
+test('014/CA-02, CA-04: o tema escolhido vale já na primeira pintura da próxima visita', async ({ page }) => {
+  await page.goto('/')
+  const html = page.locator('html')
+  const startsDark = (await html.getAttribute('class'))?.includes('dark') ?? false
+
+  await page.getByRole('button', { name: startsDark ? 'Mudar para o tema claro' : 'Mudar para o tema escuro' }).click()
+  await page.reload()
+
+  // The inline script in index.html applies the saved choice before React mounts.
+  await expect(html).toHaveClass(startsDark ? /^(?!.*\bdark\b)/ : /\bdark\b/)
 })

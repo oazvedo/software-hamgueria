@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { cancelOrder, updateOrderStatus } from '@/entities/order'
+import { problemMessage } from '@/shared/api/problem'
 import { queryKeys } from '@/shared/api/queryKeys'
 
 export function useManageOrder() {
@@ -13,7 +14,7 @@ export function useManageOrder() {
       invalidate()
       toast.success('Pedido finalizado.')
     },
-    onError: () => toast.error('Não foi possível finalizar o pedido.'),
+    onError: (error) => toast.error(problemMessage(error, 'Não foi possível finalizar o pedido.')),
   })
 
   const cancel = useMutation({
@@ -22,7 +23,7 @@ export function useManageOrder() {
       invalidate()
       toast.success('Pedido cancelado.')
     },
-    onError: () => toast.error('Não foi possível cancelar o pedido.'),
+    onError: (error) => toast.error(problemMessage(error, 'Não foi possível cancelar o pedido.')),
   })
 
   return { finish, cancel }

@@ -22,6 +22,6 @@ public class DishRepository(AppDbContext context) : IDishRepository
     public Task<Dish?> GetByIdAsync(Guid id) =>
         context.Dishes.FirstOrDefaultAsync(d => d.Id == id);
 
-    public async Task<IEnumerable<Dish>> GetAllAsync() =>
-        await context.Dishes.ToListAsync();
+    public async Task<IEnumerable<Dish>> GetAllAsync(bool onlyActive = false) =>
+        await context.Dishes.Where(d => !onlyActive || d.IsActive).ToListAsync();
 }

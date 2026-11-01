@@ -1,0 +1,42 @@
+# Weekly update PRs (spec 024): with images pinned by digest and exact package versions, nothing moves by itself;
+# Dependabot proposes the bumps and the CI (tests, gate, vulnerability checks, image build) judges each one.
+version: 2
+updates:
+  - package-ecosystem: docker
+    commit-message: { prefix: build, include: scope }   # build(deps): ... (convencao, ADR 0018)
+    # Major image versions (Postgres 16 to 18, RabbitMQ 3 to 4...) need a data migration: decided by hand, not here.
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    directories: [/backend, /frontend]
+    schedule: { interval: weekly }
+    target-branch: dev
+  - package-ecosystem: docker-compose
+    commit-message: { prefix: build, include: scope }   # build(deps): ... (convencao, ADR 0018)
+    # Major image versions (Postgres 16 to 18, RabbitMQ 3 to 4...) need a data migration: decided by hand, not here.
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    directories: [/, /backend]
+    schedule: { interval: weekly }
+    target-branch: dev
+  - package-ecosystem: nuget
+    commit-message: { prefix: build, include: scope }   # build(deps): ... (convencao, ADR 0018)
+    directory: /backend
+    schedule: { interval: weekly }
+    target-branch: dev
+    groups:
+      microsoft: { patterns: ["Microsoft.*", "System.*"] }
+      opentelemetry: { patterns: ["OpenTelemetry*", "Npgsql.OpenTelemetry"] }
+  - package-ecosystem: npm
+    commit-message: { prefix: build, include: scope }   # build(deps): ... (convencao, ADR 0018)
+    directory: /frontend
+    schedule: { interval: weekly }
+    target-branch: dev
+    groups:
+      minor-and-patch: { update-types: [minor, patch] }
+  - package-ecosystem: github-actions
+    commit-message: { prefix: build, include: scope }   # build(deps): ... (convencao, ADR 0018)
+    directory: /
+    schedule: { interval: weekly }
+    target-branch: dev

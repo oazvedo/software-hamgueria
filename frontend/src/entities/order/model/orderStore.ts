@@ -1,7 +1,9 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Dish } from '@/entities/dish/model/types'
-import type { OrderItem } from '@/entities/order/model/types'
+import type { OrderItem, OrderableDish } from '@/entities/order/model/types'
+
+/** Most units of one dish per order, as the server validates (spec 003, RN-01). */
+export const MAX_ITEM_QUANTITY = 20
 
 interface OrderState {
   tableId: string | null
@@ -9,7 +11,7 @@ interface OrderState {
   items: OrderItem[]
   setTable: (tableId: string | null) => void
   setCustomerName: (customerName: string) => void
-  addDish: (dish: Dish) => void
+  addDish: (dish: OrderableDish) => void
   removeDish: (dishId: string) => void
   setQuantity: (dishId: string, quantity: number) => void
   setNotes: (dishId: string, notes: string) => void
@@ -33,7 +35,7 @@ export const useOrderStore = create<OrderState>()(
           if (existing) {
             return {
               items: state.items.map((i) =>
-                i.dishId === dish.id ? { ...i, quantity: i.quantity + 1 } : i,
+                i.dishId === dish.id ? { ...i, quantity: Math.min(i.quantity + 1, MAX_ITEM_QUANTITY) } : i,
               ),
             }
           }
@@ -58,7 +60,9 @@ export const useOrderStore = create<OrderState>()(
           items:
             quantity <= 0
               ? state.items.filter((i) => i.dishId !== dishId)
-              : state.items.map((i) => (i.dishId === dishId ? { ...i, quantity } : i)),
+              : state.items.map((i) =>
+                  i.dishId === dishId ? { ...i, quantity: Math.min(quantity, MAX_ITEM_QUANTITY) } : i,
+                ),
         })),
       setNotes: (dishId, notes) =>
         set((state) => ({

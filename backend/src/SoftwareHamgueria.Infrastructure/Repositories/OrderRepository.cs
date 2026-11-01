@@ -25,10 +25,24 @@ public class OrderRepository(AppDbContext context) : IOrderRepository
             .Include(o => o.Items).ThenInclude(i => i.Dish)
             .FirstOrDefaultAsync(o => o.Id == id);
 
-    public async Task<IEnumerable<Order>> GetAllAsync() =>
+    public async Task<IReadOnlyList<ComandaOrderRow>> GetOrdersOfComandasIdleSinceAsync(DateTime idleSince) =>
+        await context.Database.SqlQuery<ComandaOrderRow>($"""
+            SELECT o."TableId", t."TableName", o."CustomerName", o."CreatedAt"
+            FROM "Orders" o JOIN "Tables" t ON t."Id" = o."TableId"
+            WHERE (o."TableId", lower(o."CustomerName")) IN (
+                SELECT "TableId", lower("CustomerName") FROM "Orders"
+                GROUP BY "TableId", lower("CustomerName")
+                HAVING max("CreatedAt") < {idleSince})
+            """).ToListAsync();
+
+    public async Task<IEnumerable<Order>> GetForKitchenAsync(DateTime finishedSince, int max) =>
         await context.Orders
             .Include(o => o.Table)
             .Include(o => o.Items).ThenInclude(i => i.Dish)
+            .Where(o => (o.Status != OrderStatus.Done && o.Status != OrderStatus.Cancelled) || o.UpdatedAt >= finishedSince)
+            .OrderByDescending(o => o.UpdatedAt)
+            .Take(max)
+            .AsSplitQuery()
             .ToListAsync();
 
     public async Task<IEnumerable<Order>> GetByComandaAsync(Guid tableId, string customerName) =>

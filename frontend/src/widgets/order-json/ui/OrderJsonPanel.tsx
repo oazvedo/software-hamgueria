@@ -1,14 +1,17 @@
 import { useState } from 'react'
 import { Highlight, themes } from 'prism-react-renderer'
 import { Send, Trash2 } from 'lucide-react'
-import { buildOrderJson, useOrderStore } from '@/entities/order'
+import { buildOrderJson, MAX_ITEM_QUANTITY, useOrderStore } from '@/entities/order'
 import { CheckoutDialog } from '@/features/submit-order'
 import { TableSelect } from '@/features/select-table'
+import { WindowDots } from '@/shared/ui/atoms'
+import { useThemeStore } from '@/shared/theme'
 import { QuantityStepper } from '@/shared/ui/molecules'
 import { Button, Input } from '@/shared/ui/shadcn'
 import { formatCurrency } from '@/shared/lib/formatCurrency'
 
 export function OrderJsonPanel() {
+  const theme = useThemeStore((s) => s.theme)
   const tableId = useOrderStore((s) => s.tableId)
   const customerName = useOrderStore((s) => s.customerName)
   const items = useOrderStore((s) => s.items)
@@ -23,11 +26,9 @@ export function OrderJsonPanel() {
 
   return (
     <div className="flex h-full flex-col rounded-lg border border-border bg-card shadow-sm">
-      {/* terminal title bar — macOS traffic lights */}
+      {/* terminal title bar */}
       <div className="flex items-center gap-2 border-b border-border px-3 py-2">
-        <span className="h-3 w-3 rounded-full bg-[#ff5f56]" />
-        <span className="h-3 w-3 rounded-full bg-[#ffbd2e]" />
-        <span className="h-3 w-3 rounded-full bg-[#27c93f]" />
+        <WindowDots />
         <span className="ml-2 font-mono text-xs text-muted-foreground">order.json</span>
       </div>
 
@@ -41,7 +42,7 @@ export function OrderJsonPanel() {
 
       {/* live json */}
       <div className="flex-1 overflow-auto p-3 font-mono text-sm">
-        <Highlight theme={themes.vsDark} code={code} language="json">
+        <Highlight theme={theme === 'dark' ? themes.vsDark : themes.vsLight} code={code} language="json">
           {({ style, tokens, getLineProps, getTokenProps }) => (
             <pre style={{ ...style, background: 'transparent', margin: 0 }}>
               {tokens.map((line, i) => (
@@ -70,7 +71,11 @@ export function OrderJsonPanel() {
                   <span className="font-mono text-xs text-muted-foreground">
                     {formatCurrency(item.price * item.quantity)}
                   </span>
-                  <QuantityStepper value={item.quantity} onChange={(q) => setQuantity(item.dishId, q)} />
+                  <QuantityStepper
+                    value={item.quantity}
+                    max={MAX_ITEM_QUANTITY}
+                    onChange={(q) => setQuantity(item.dishId, q)}
+                  />
                 </div>
               </div>
               <Input
@@ -95,9 +100,7 @@ export function OrderJsonPanel() {
           Enviar pedido
         </Button>
         {items.length > 0 && !tableId && (
-          <p className="mt-2 font-mono text-xs text-muted-foreground">
-            // selecione uma mesa para enviar o pedido
-          </p>
+          <p className="mt-2 text-xs text-muted-foreground">Selecione uma mesa para enviar o pedido.</p>
         )}
       </div>
 

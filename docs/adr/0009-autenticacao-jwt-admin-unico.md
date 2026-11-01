@@ -1,6 +1,6 @@
 # 0009. Autenticação JWT com admin único
 
-- **Status:** Aceito
+- **Status:** Substituído em parte por [0030](0030-dono-do-pedido-por-token.md) (quem altera e cancela pedido)
 - **Data:** 2026-10-31 (retroativo)
 
 ## Contexto

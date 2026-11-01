@@ -1,7 +1,1 @@
-export interface Table {
-  id: string
-  tableName: string
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
-}
+export type { Table } from '@/shared/api/contracts'

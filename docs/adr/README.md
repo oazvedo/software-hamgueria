@@ -37,3 +37,14 @@ Formato MADR enxuto ([template.md](template.md)). Para criar um novo, use a skil
 | [0018](0018-fluxo-de-branches-e-conventional-commits.md) | Fluxo de branches (main + dev) e Conventional Commits | Aceito |
 | [0019](0019-git-hooks-versionados.md) | Git hooks versionados no repositório | Aceito |
 | [0020](0020-revisao-de-pr-com-claude.md) | Revisão de PR e @claude com o Claude Code Action | Aceito |
+| [0021](0021-validacao-de-entrada-com-fluentvalidation.md) | Validação de entrada com FluentValidation na Application | Aceito |
+| [0022](0022-erros-em-problemdetails-com-handler-global.md) | Erros da API em ProblemDetails com handler global | Aceito |
+| [0023](0023-deploy-em-ec2-com-docker-compose-e-caddy.md) | Deploy em uma instância EC2 com Docker Compose e Caddy | Aceito |
+| [0024](0024-segredos-por-variaveis-de-ambiente-validados-no-startup.md) | Segredos por variáveis de ambiente, validados na inicialização | Aceito |
+| [0025](0025-eventos-de-pedido-com-fila-de-espera-em-memoria.md) | Eventos de pedido com fila de espera em memória e envio em segundo plano | Substituído por 0031 |
+| [0026](0026-fluxo-autonomo-sem-aprovacoes.md) | Fluxo autônomo: specs e ADRs sem paradas de aprovação | Aceito |
+| [0027](0027-auditoria-por-triggers-no-postgres.md) | Auditoria do banco por triggers no PostgreSQL, com autor e origem | Aceito |
+| [0028](0028-observabilidade-com-opentelemetry.md) | Observabilidade com OpenTelemetry e Aspire Dashboard | Aceito |
+| [0029](0029-fila-de-jobs-com-hangfire.md) | Fila de jobs com Hangfire no Postgres | Aceito |
+| [0030](0030-dono-do-pedido-por-token.md) | Dono do pedido por token e status com transições fechadas | Aceito |
+| [0031](0031-outbox-transacional.md) | Eventos de pedido por outbox transacional no Postgres | Aceito |

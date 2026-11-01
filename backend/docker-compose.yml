@@ -1,32 +1,33 @@
-version: "3.9"
-
+# Desenvolvimento local: só Postgres e RabbitMQ (a API roda com `dotnet run`, a tela com o Vite).
+# Portas fora do padrão para não colidir com outras instalações (spec 004). Valores em backend/.env
+# (copie de .env.example); sem o .env, valem os padrões abaixo. Produção: docker-compose.prod.yml na raiz.
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:16-alpine@sha256:0cefaabd882e42bcb2a2f3dc56d3ce4770560ba62fd7f197f1a2e008fd5731ab
     container_name: hamgueria-postgres
     environment:
       POSTGRES_DB: hamgueria
-      POSTGRES_USER: hamgueria
-      POSTGRES_PASSWORD: hamgueria123
+      POSTGRES_USER: ${POSTGRES_USER:-hamgueria}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hamgueria123}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5433}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U hamgueria"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hamgueria}"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   rabbitmq:
-    image: rabbitmq:3.13-management-alpine
+    image: rabbitmq:3.13-management-alpine@sha256:606d8c0d6b3c18d1da9afc53bc7cdb2a8d5486df91b5a9830e9e07626c9ae281
     container_name: hamgueria-rabbitmq
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "${RABBITMQ_PORT:-5673}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT:-15673}:15672"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
@@ -34,6 +35,17 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # Traces, metrics and logs of the API (ADR 0028): UI at http://localhost:18888, OTLP gRPC on 4317.
+  aspire-dashboard:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:9.5@sha256:f287c6954596315ada6fb45af6ed2e451c45658aeb68d98dc1cfed5b5b253895
+    container_name: hamgueria-aspire-dashboard
+    environment:
+      DASHBOARD__FRONTEND__AUTHMODE: Unsecured   # local only; production keeps the browser token
+      DASHBOARD__OTLP__AUTHMODE: Unsecured
+    ports:
+      - "127.0.0.1:${ASPIRE_DASHBOARD_PORT:-18888}:18888"   # loopback: the dashboard has no login here
+      - "127.0.0.1:${OTLP_PORT:-4317}:18889"
 
 volumes:
   postgres_data:

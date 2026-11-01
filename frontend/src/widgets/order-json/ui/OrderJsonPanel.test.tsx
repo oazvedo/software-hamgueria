@@ -33,4 +33,45 @@ describe('painel JSON', () => {
 
     expect(jsonText()).toContain('"obs": "sem cebola"')
   })
+
+  it('003/CA-03: o botão Aumentar para em 20 unidades', async () => {
+    act(() => useOrderStore.getState().addDish(burger))
+    act(() => useOrderStore.getState().setQuantity(burger.id, 19))
+    renderWithProviders(<OrderJsonPanel />)
+    const more = screen.getByRole('button', { name: 'Aumentar' }) as HTMLButtonElement
+
+    await userEvent.click(more)
+
+    expect(jsonText()).toContain('"quantity": 20')
+    expect(more.disabled).toBe(true)
+  })
+
+  it('003/CA-03: adicionar o mesmo prato pelo cardápio não passa de 20', () => {
+    for (let i = 0; i < 25; i++) act(() => useOrderStore.getState().addDish(burger))
+
+    expect(useOrderStore.getState().items[0].quantity).toBe(20)
+  })
+
+  it('006/CA-04: sem mesa escolhida, a instrução aparece como texto comum', () => {
+    useOrderStore.setState({ tableId: null })
+    act(() => useOrderStore.getState().addDish(burger))
+    renderWithProviders(<OrderJsonPanel />)
+
+    const hint = screen.getByText('Selecione uma mesa para enviar o pedido.')
+    expect(hint.className).not.toContain('font-mono')
+    expect(hint.textContent).not.toMatch(/^\s*\/\//)
+  })
+
+  it('006/CA-10: as bolinhas da janela usam tokens da paleta e ficam fora do leitor de tela', () => {
+    renderWithProviders(<OrderJsonPanel />)
+
+    const dots = screen.getByTestId('window-dots')
+    expect(dots.getAttribute('aria-hidden')).toBe('true')
+    expect(dots.innerHTML).not.toMatch(/#[0-9a-f]{3,6}/i)
+    expect([...dots.children].map((d) => d.className.match(/bg-window-\w+/)?.[0])).toEqual([
+      'bg-window-close',
+      'bg-window-minimize',
+      'bg-window-zoom',
+    ])
+  })
 })

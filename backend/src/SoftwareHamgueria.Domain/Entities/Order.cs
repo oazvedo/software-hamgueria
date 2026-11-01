@@ -11,6 +11,23 @@ public class Order
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
     public OrderStatus Status { get; private set; }
+    /// <summary>SHA-256 of the owner token handed to whoever created the order (ADR 0030). Null on older orders.</summary>
+    public string? OwnerTokenHash { get; private set; }
+
+    /// <summary>
+    /// Allowed status moves (spec 012). Served and cancelled are final; editing items sends the order back to Draft.
+    /// </summary>
+    private static readonly Dictionary<OrderStatus, OrderStatus[]> Moves = new()
+    {
+        [OrderStatus.Created] = [OrderStatus.Draft, OrderStatus.Done, OrderStatus.Cancelled],
+        [OrderStatus.Draft] = [OrderStatus.Draft, OrderStatus.Created, OrderStatus.Done, OrderStatus.Cancelled],
+        [OrderStatus.Done] = [],
+        [OrderStatus.Cancelled] = [],
+    };
+
+    public bool CanMoveTo(OrderStatus next) => Moves.TryGetValue(Status, out var allowed) && allowed.Contains(next);
+
+    public bool IsFinal => Status is OrderStatus.Done or OrderStatus.Cancelled;
 
     protected Order() { }
 
@@ -40,14 +57,18 @@ public class Order
         UpdatedAt = DateTime.UtcNow;
     }
 
+    public void SetOwnerTokenHash(string hash) => OwnerTokenHash = hash;
+
     public void UpdateStatus(OrderStatus status)
     {
+        if (!CanMoveTo(status)) throw new InvalidOperationException($"Order {Id}: {Status} cannot move to {status}.");
         Status = status;
         UpdatedAt = DateTime.UtcNow;
     }
 
     public void Cancel()
     {
+        if (!CanMoveTo(OrderStatus.Cancelled)) throw new InvalidOperationException($"Order {Id}: {Status} cannot be cancelled.");
         Status = OrderStatus.Cancelled;
         UpdatedAt = DateTime.UtcNow;
     }

@@ -9,7 +9,10 @@ textos de interface em português (ADR 0004).
 1. Leia os ADRs em `docs/adr/` (índice em `docs/adr/README.md`). **Eles são lei.** Se uma tarefa exigir
    contrariar um ADR, pare e proponha um novo ADR (skill `adr`). Não desvie em silêncio.
 2. Trabalhe a partir de uma spec em `docs/specs/NNN-nome/`. Sem spec, crie uma (skill `spec`).
-3. **Implementação rápida** (skill `implement-task`): a spec inteira de uma vez, meta de até ~10 minutos, sem parar
+3. **Modo autônomo (ADR 0026, desde 2026-10-31):** escreva spec, plan e tasks e implemente na sequência, **sem parar
+   para aprovação**; ADR novo nasce `Aceito`; integre o próprio PR na `dev` com o CI verde. Pare só para `main`, deploy
+   real, dados fora do teste ou custo externo.
+4. **Implementação rápida** (skill `implement-task`): a spec inteira de uma vez, meta de até ~10 minutos, sem parar
    entre fases. Cada task com a sua verificação; suíte completa e relatório curto só no fim. Pare só se travar.
 
 > **Projeto brownfield.** O código anterior à metodologia está descrito na spec 001 (linha de base) e nos ADRs
@@ -39,6 +42,7 @@ Toda tela nova ou alterada passa pelo sistema Visant. Os `better-*` entram como 
 
 Comandos (rode da raiz do repo; **sempre** com `npm_config_yes=false`, veja ajuste 1):
 ```bash
+sh scripts/ui/gate.sh [frontend/src/<alvo>]   # detectores Visant + fronteiras do FSD; sai 1 se algum achar algo (specs 006, 022)
 export npm_config_yes=false
 node .claude/skills/visant-killer/scripts/killer-scan.mjs frontend/src/<alvo>          # gate (3 de 4 detectores; copy roda à parte)
 node .claude/skills/visant-copy/scripts/copy-lint.mjs frontend/src/<alvo>              # 4º detector, rodado à parte
@@ -74,10 +78,10 @@ node .claude/skills/visant-killer/scripts/verify-screens.mjs --base http://local
    Hamgueria (satírica dev), mas **as proibições valem para toda copy nova ou reescrita**: sem travessão, sem emoji,
    sem ponto-e-vírgula, sem "não é X, é Y". As 11 ocorrências antigas só mudam numa spec própria
    (ver "Candidatos a spec"); não as corrija de passagem.
-9. **Identidade dev vs. detector de ruído (decidido em 2026-10-31):** o `noise-scan` marca `code-crumb`
-   (`// monte seu pedido`, `~/menu`) e `mono-everywhere`, que são o conceito do produto (ADR 0011). **Não remova**
-   esses motivos fora de uma spec que decida quais ficam (com exceção escrita na linha) e quais saem. Em blocos
-   comuns, achados dessas duas regras em código já existente não são fix nem backlog: já estão em "Candidatos a spec".
+9. **Identidade dev vs. detector de ruído (decidido na spec 006, 2026-10-31):** ficam os rótulos de seção `// ...` e
+   a nav `~/`, cada um com `EXCEÇÃO ao ruido-scan/code-crumb: <motivo>` na linha. Instrução nunca tem forma de
+   comentário. Mono em tela de trabalho só em dado tabular, pelo átomo `DataText` (`shared/ui/atoms`). As bolinhas de
+   janela são o átomo `WindowDots` (tokens `--window-*`). Código novo segue isso; o gate (`scripts/ui/gate.sh`) cobra.
 10. **Relatórios** do `killer-scan` (`--init-report`/`--report`) ficam em `docs/audits/`, nunca na raiz.
 
 ## Skills de terceiros: referência (`.claude/skills/`, origem em `_licenses/ORIGEM.md`)
@@ -121,8 +125,16 @@ Ajustes conhecidos:
   Application; DI só em `ApplicationModule.cs` e `InfrastructureModule.cs` (ADR 0004). PostgreSQL + EF Core com uma
   `XxxConfiguration` por entidade, migrations aplicadas no startup + `DatabaseSeeder` (ADR 0005). Repositório
   persiste a própria escrita (ADR 0006). DTOs `record` com mapeamento manual (ADR 0007). Controllers em
-  `/api/<entidade-singular>`, sem DELETE, Swagger em `/swagger` (ADR 0008). JWT com papel `Admin` (ADR 0009).
-  Eventos de pedido no RabbitMQ (ADR 0010). Comanda = mesa + nome (ADR 0014).
+  `/api/<entidade-singular>`, sem DELETE, Swagger em `/swagger` (ADR 0008). Entrada validada com FluentValidation no
+  service (ADR 0021). Erros em ProblemDetails pelo handler global, sem `try/catch` no controller, com
+  `NotFoundException`/`BusinessRuleException` (ADR 0022). JWT com papel `Admin` (ADR 0009). Eventos de pedido no RabbitMQ (ADR 0010), gravados no outbox na mesma transação do pedido e enviados em segundo plano (ADR 0031). Comanda = mesa + nome (ADR 0014).
+  Auditoria do banco por triggers em `audit.change_log`, com autor e tela vindos de `IAuditContext` (ADR 0027): tabela nova
+  ganha o trigger na migration. Traces, métricas e logs por OpenTelemetry, instrumentos próprios em `HamgueriaTelemetry` (ADR 0028).
+  Jobs de fundo no Hangfire (Postgres): classe na Application, recorrência em `Infrastructure/Jobs/RecurringJobs`,
+  painel em `/api/jobs` (ADR 0029).
+  Segredos só por variável de ambiente, validados no startup fora de `Development` pelo `RequiredSettings` (ADR 0024).
+- **Deploy:** uma EC2 com `docker-compose.prod.yml` (Postgres, RabbitMQ, API e Caddy servindo a tela e o `/api`), só
+  80/443 abertas, segredos no `.env` da raiz (ADR 0023). Guia em `docs/deploy/aws-ec2.md`.
 - **Frontend:** React + FSD + Atomic Design no `shared/ui` + shadcn/Tailwind (ADR 0011). TanStack Query para estado
   do servidor, Zustand para estado do cliente (ADR 0012). MSW ligado por padrão; todo endpoint novo tem handler (ADR 0013).
 - **Testes (ADR 0016):** a verificação de toda task é o teste da parte tocada, não só o build. Servidor: xUnit v3 +
@@ -146,7 +158,7 @@ Ajustes conhecidos:
 
 ## Comandos
 ```bash
-# Backend (Postgres + RabbitMQ via Docker)
+# Backend (Postgres 5433, RabbitMQ 5673/15673, Aspire Dashboard 18888 com OTLP 4317; valores em backend/.env)
 cd backend && docker compose up -d
 dotnet run --project backend/src/SoftwareHamgueria.API      # :5262, aplica migrations + seed; /swagger
 
@@ -164,9 +176,13 @@ cd frontend && npm run build && npm run lint
 cd frontend && npm run e2e                  # Playwright com mocks (sobe o Vite na 5173)
 
 # Ponta a ponta no modo real: API numa base separada, nunca a de dev (spec 002, RN-02). Precisa do RabbitMQ.
-ConnectionStrings__Postgres="Host=localhost;Port=5432;Database=hamgueria_e2e;Username=hamgueria;Password=hamgueria123" \
+ConnectionStrings__Postgres="Host=localhost;Port=5433;Database=hamgueria_e2e;Username=hamgueria;Password=hamgueria123" \
   dotnet run --project backend/src/SoftwareHamgueria.API --launch-profile http
 cd frontend && npm run e2e:real             # Vite na 5174 sem mocks; pula sozinho se a API não responder
+
+# Produção (ADR 0023): fumaça local da pilha completa na 8088 (sobe, confere e derruba com volumes)
+sh scripts/deploy/smoke.sh
+docker compose -f docker-compose.prod.yml up -d --build    # no servidor, com o .env da raiz (docs/deploy/aws-ec2.md)
 ```
 Playwright no WSL (uma vez): `npx playwright install chromium` e `sudo env "PATH=$PATH" npx playwright install-deps chromium`.
 Login da cozinha (dev): `admin` / `admin123`.

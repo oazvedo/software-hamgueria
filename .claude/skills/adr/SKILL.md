@@ -24,5 +24,6 @@ description: Cria ou substitui um Architecture Decision Record (ADR) em docs/adr
 ## Regras
 - Um ADR, uma decisão. Se o texto tiver "e também decidimos...", divida em dois.
 - Português, frases diretas, sem jargão desnecessário.
-- Só o usuário muda o status para `Aceito` ou `Rejeitado`. Você nunca aceita um ADR por conta própria.
-- Ao terminar, mostre ao usuário o resumo da decisão e pergunte se ele aceita.
+- No modo autônomo (ADR 0026), o ADR nasce `Aceito` com a anotação "(fluxo autônomo, ADR 0026)". Fora dele, só o
+  usuário muda o status para `Aceito` ou `Rejeitado`.
+- Ao terminar, registre o resumo da decisão no relatório do lote (modo autônomo) ou pergunte se o usuário aceita.

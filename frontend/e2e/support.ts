@@ -16,19 +16,29 @@ export function skipRealWithoutApi() {
 /** A comanda name no other test uses. */
 export const uniqueCustomer = (prefix: string) => `${prefix}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
 
-/** Picks a table, adds the first dish and sends the order under `customer`; ends on the comanda page. */
-export async function placeOrder(page: Page, customer: string, table = 'Mesa 01') {
+/** Opens the menu, picks a table and adds the first dish to the cart. */
+export async function addFirstDish(page: Page, table = 'Mesa 01') {
   await page.goto('/menu')
   await page.getByRole('combobox').filter({ hasText: /selecione a mesa|Mesa/ }).click()
   await page.getByRole('option', { name: table }).click()
   await page.getByRole('button', { name: 'Adicionar' }).first().click()
+}
+
+/** Picks a table, adds the first dish and sends the order under `customer`; ends on the comanda page. */
+export async function placeOrder(page: Page, customer: string, table = 'Mesa 01') {
+  await addFirstDish(page, table)
+  await sendCart(page, customer)
+}
+
+/** Sends the current cart under a new comanda `customer`; ends on the comanda page. */
+export async function sendCart(page: Page, customer: string) {
   await page.getByRole('button', { name: 'Enviar pedido' }).click()
 
   const dialog = page.getByRole('dialog')
   const comandaPicker = dialog.getByRole('combobox')
   if (await comandaPicker.isVisible()) {
     await comandaPicker.click()
-    await page.getByRole('option', { name: /nova comanda/ }).click()
+    await page.getByRole('option', { name: /nova comanda/i }).click()
   }
   await dialog.getByPlaceholder('ex.: joão').fill(customer)
   await dialog.getByRole('button', { name: 'Enviar pedido' }).click()

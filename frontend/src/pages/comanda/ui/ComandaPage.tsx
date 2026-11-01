@@ -54,9 +54,9 @@ export function ComandaPage() {
             <div className="flex items-center gap-2">
               {params.tableId && (
                 <Button asChild size="sm" variant="ghost">
-                  <Link to={`/mesa/${params.tableId}`}>
+                  <Link to={`/comandas/${params.tableId}`}>
                     <LayoutGrid />
-                    Ver a mesa toda
+                    Todas as comandas da mesa
                   </Link>
                 </Button>
               )}
@@ -114,8 +114,8 @@ export function ComandaPage() {
 
             <div className="mt-6 flex justify-center">
               {closed ? (
-                <p className="font-mono text-xs text-muted-foreground">
-                  // comanda fechada — abra uma nova pelo cardápio
+                <p className="text-sm text-muted-foreground">
+                  Comanda fechada. Para pedir de novo, abra uma nova pelo cardápio.
                 </p>
               ) : (
                 <Button asChild variant="outline">

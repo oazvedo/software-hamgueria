@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useOrderStore } from '@/entities/order'
+import { ThemeToggle } from '@/shared/ui/molecules'
 
 export function Header() {
   const tableId = useOrderStore((s) => s.tableId)
@@ -11,28 +12,36 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur">
-      <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between px-6 py-3">
+      <div className="mx-auto flex h-14 w-full max-w-[1600px] items-center justify-between px-6">
         <Link to="/" className="flex items-center gap-2 font-semibold text-foreground">
           <span className="font-mono text-brand">{'</>'}</span>
           <span>Software Hamgueria</span>
         </Link>
         <nav className="flex items-center gap-1 font-mono text-sm">
+          {/* EXCEÇÃO ao ruido-scan/code-crumb: navegação em forma de caminho de terminal, identidade dev do produto (spec 006, RN-02) */}
           <Link to="/menu" className={linkClass}>
             ~/menu
           </Link>
           {hasComanda && (
             <>
+              {/* EXCEÇÃO ao ruido-scan/code-crumb: navegação em forma de caminho de terminal, identidade dev do produto (spec 006, RN-02) */}
               <Link
                 to={`/comanda/${tableId}/${encodeURIComponent(customerName)}`}
                 className={linkClass}
               >
                 ~/comanda
               </Link>
-              <Link to={`/mesa/${tableId}`} className={linkClass}>
-                ~/mesa
+            </>
+          )}
+          {tableId && (
+            <>
+              {/* EXCEÇÃO ao ruido-scan/code-crumb: navegação em forma de caminho de terminal, identidade dev do produto (spec 006, RN-02) */}
+              <Link to={`/comandas/${tableId}`} className={linkClass}>
+                ~/comandas
               </Link>
             </>
           )}
+          <ThemeToggle />
         </nav>
       </div>
     </header>

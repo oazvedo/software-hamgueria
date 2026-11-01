@@ -21,15 +21,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
 
       # Functional tests start a throwaway Postgres with Testcontainers (Docker is preinstalled on ubuntu runners).
       - name: Testes
         run: dotnet test --solution backend/SoftwareHamgueria.slnx
+
+      # No package with a known vulnerability, direct or transitive (spec 018).
+      - name: Dependências sem vulnerabilidade conhecida
+        run: |
+          sh scripts/ci/nuget-vulnerabilities.test.sh
+          sh scripts/ci/nuget-vulnerabilities.sh
 
   frontend:
     runs-on: ubuntu-latest
@@ -38,18 +44,26 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
       - run: npm ci
+      # No high or critical advisory in the dependency tree (spec 018).
+      - run: npm audit --audit-level=high
       - run: npm test
       - run: npm run lint
       - run: npm run build
+      # Interface gate (ADR 0015, spec 006): colors, noise, copy and motion detectors over frontend/src.
+      - name: Gate de interface
+        working-directory: .
+        run: |
+          sh scripts/ui/fsd-lint.test.sh
+          sh scripts/ui/gate.sh
 
   e2e:
     runs-on: ubuntu-latest
@@ -58,9 +72,9 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
@@ -72,8 +86,30 @@ jobs:
 
       - name: Relatório do Playwright
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-traces
           path: frontend/test-results/
           retention-days: 7
+
+  # The production images (ADR 0023) build on every PR, so a broken Dockerfile shows up before a deploy (spec 013).
+  images:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+      - name: Imagem da API
+        uses: docker/build-push-action@v7
+        with:
+          context: backend
+          push: false
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+      - name: Imagem da tela (Caddy)
+        uses: docker/build-push-action@v7
+        with:
+          context: frontend
+          push: false
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web

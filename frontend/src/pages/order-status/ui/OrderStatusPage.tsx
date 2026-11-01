@@ -1,7 +1,8 @@
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, Rocket, Users, X } from 'lucide-react'
 import { Header } from '@/widgets/header'
-import { OrderPipeline, StatusBadge, isTerminal, useOrder } from '@/entities/order'
+import { OwnOrderActions } from '@/features/change-own-order'
+import { ItemNote, OrderPipeline, StatusBadge, isTerminal, useOrder } from '@/entities/order'
 import { Alert, AlertDescription, AlertTitle, Button, Spinner } from '@/shared/ui/shadcn'
 import { formatCurrency } from '@/shared/lib/formatCurrency'
 import { cn } from '@/shared/lib/cn'
@@ -53,6 +54,7 @@ export function OrderStatusPage() {
 
             <section className="rounded-xl border border-border bg-card p-6">
               <div className="mb-4 flex items-center justify-between">
+                {/* EXCEÇÃO ao ruido-scan/code-crumb: rótulo de seção em forma de comentário, identidade dev do produto (spec 006, RN-02) */}
                 <h2 className="font-mono text-sm text-muted-foreground">// pipeline</h2>
                 {!isTerminal(order.status) && (
                   <span className="inline-flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
@@ -65,6 +67,7 @@ export function OrderStatusPage() {
             </section>
 
             <section className="rounded-xl border border-border bg-card p-6">
+              {/* EXCEÇÃO ao ruido-scan/code-crumb: rótulo de seção em forma de comentário, identidade dev do produto (spec 006, RN-02) */}
               <h2 className="mb-3 font-mono text-sm text-muted-foreground">// itens</h2>
               <ul className="flex flex-col divide-y divide-border">
                 {order.items.map((item) => (
@@ -72,9 +75,7 @@ export function OrderStatusPage() {
                     <span className="text-foreground">
                       <span className="font-mono text-muted-foreground">{item.quantity}×</span>{' '}
                       {item.dishName}
-                      {item.notes && (
-                        <span className="mt-0.5 block text-xs text-muted-foreground">↳ {item.notes}</span>
-                      )}
+                      {item.notes && <ItemNote notes={item.notes} className="text-muted-foreground" />}
                     </span>
                     <span className="font-mono text-muted-foreground">
                       {formatCurrency(item.price * item.quantity)}
@@ -92,10 +93,12 @@ export function OrderStatusPage() {
 
             {order.status === 'Done' && (
               <div className="flex items-center gap-2 rounded-lg border border-brand/30 bg-brand/5 px-4 py-3 text-sm text-foreground">
-                <Rocket className="size-4 text-brand" />
-                Pedido servido — deploy em produção concluído. Bom apetite!
+                <Rocket aria-hidden="true" className="size-4 text-brand" />
+                Pedido servido. Deploy em produção concluído, bom apetite!
               </div>
             )}
+
+            <OwnOrderActions order={order} />
 
             <div className="flex flex-wrap justify-center gap-3">
               <Button asChild variant="secondary">

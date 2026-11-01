@@ -1,0 +1,7 @@
+**/bin/
+**/obj/
+tests/
+.env
+*.md
+# Dev credentials never ship in the image (ADR 0024).
+src/SoftwareHamgueria.API/appsettings.Development.json

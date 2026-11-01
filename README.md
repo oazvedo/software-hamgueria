@@ -62,7 +62,8 @@ Pré-requisitos: **.NET 10 SDK**, **Node 20+**, **Docker**.
 
 ```bash
 cd backend
-docker compose up -d          # sobe Postgres + RabbitMQ
+cp .env.example .env          # portas e senhas locais (opcional: sem ele valem os mesmos padrões)
+docker compose up -d          # sobe Postgres (5433) + RabbitMQ (5673)
 dotnet run --project src/SoftwareHamgueria.API
 ```
 
@@ -70,7 +71,8 @@ A API sobe em **http://localhost:5262**, aplica as migrations automaticamente e
 semeia o banco (pratos + mesas). Swagger em `/swagger`.
 
 - **Login da cozinha:** `admin` / `admin123`
-- **RabbitMQ management:** http://localhost:15672 (`guest` / `guest`)
+- **RabbitMQ management:** http://localhost:15673 (`guest` / `guest`)
+- Portas fora do padrão (5433, 5673, 15673) para conviver com outro Postgres ou RabbitMQ na máquina.
 
 ### 2. Frontend
 
@@ -113,4 +115,10 @@ Depois é só reiniciar a API — a migration é aplicada preservando os dados.
 
 ---
 
-> As credenciais em `appsettings.json` são apenas para desenvolvimento local.
+## Deploy
+
+Produção numa EC2 com `docker-compose.prod.yml` (Postgres, RabbitMQ, API e Caddy servindo a tela e o `/api`, com
+HTTPS automático quando há domínio). Passo a passo em [`docs/deploy/aws-ec2.md`](docs/deploy/aws-ec2.md).
+
+> As credenciais do `appsettings.Development.json` valem só para desenvolvimento local. Em produção, os segredos
+> vêm do `.env` da raiz (modelo em `.env.example`), e a API não sobe sem eles ou com a senha de desenvolvimento.
