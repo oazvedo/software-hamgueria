@@ -3,10 +3,18 @@
 version: 2
 updates:
   - package-ecosystem: docker
+    # Major image versions (Postgres 16 to 18, RabbitMQ 3 to 4...) need a data migration: decided by hand, not here.
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     directories: [/backend, /frontend]
     schedule: { interval: weekly }
     target-branch: dev
   - package-ecosystem: docker-compose
+    # Major image versions (Postgres 16 to 18, RabbitMQ 3 to 4...) need a data migration: decided by hand, not here.
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     directories: [/, /backend]
     schedule: { interval: weekly }
     target-branch: dev
