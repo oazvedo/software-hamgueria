@@ -103,6 +103,8 @@ espera ok 'pr dev <- feat/002-x, range com merge commit' pr dev feat/002-x "$bas
 espera falha 'pr main <- feat/002-x' pr main feat/002-x "$base" "$valido"
 espera falha 'pr dev <- hotfix/x' pr dev hotfix/x "$base" "$valido"
 espera falha 'pr dev <- branch fora do padrão' pr dev feature/abluble "$base" "$valido"
+espera ok 'pr dev <- dependabot/nuget/backend/x (atualização de dependência)' pr dev dependabot/nuget/backend/x "$base" "$valido"
+espera falha 'pr main <- dependabot/x (só dev e hotfix vão para a main)' pr main dependabot/npm/x "$base" "$valido"
 espera falha 'pr com commit Feat: Abluble' pr dev fix/abluble "$valido" "$invalido"
 saida_contem 'commit inválido aparece com o SHA' "$sha_invalido Feat: Abluble"
 espera falha 'pr com SHA inexistente (git log falha)' pr dev feat/002-x "$base" 0000000000000000000000000000000000000000
