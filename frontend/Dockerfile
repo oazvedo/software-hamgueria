@@ -8,7 +8,7 @@ COPY . .
 ENV VITE_ENABLE_MOCKS=false
 RUN npm run build && rm -f dist/mockServiceWorker.js
 
-FROM caddy:2-alpine@sha256:e70b164da81ef698b3ad19af799ea6086ce6d9e48ed4079eb9fe26f6fbf14ee5
+FROM caddy:2-alpine@sha256:003a97808e781aa9f7e75cc2f43d34d461099031faf5e20faefb9f61126836f0
 COPY Caddyfile /etc/caddy/Caddyfile
 COPY --from=build /app/dist /srv
 EXPOSE 80 443
